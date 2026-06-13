@@ -86,17 +86,21 @@ tests/
 
 ## 4. Data model
 
-- **Product**: `Id, Name, Category (Edible | SecondHand), PriceCents, StockQuantity, ImageKey,
-  IsActive, RowVersion`
+- **Product**: `Id, Name (canonical/base-culture, required), Category (Edible | SecondHand),
+  PriceCents, StockQuantity, ImageKey, IsActive, RowVersion`
+- **ProductTranslation**: `Id, ProductId, CultureCode, Name` — one row per non-base language
 - **Order**: `Id, CreatedAtUtc, TotalCents, CashPaidCents, ChangeCents` + lines
 - **OrderLine**: `Id, OrderId, ProductId, ProductName (snapshot), UnitPriceCents (snapshot),
   Quantity, LineTotalCents`
 
-Order lines **snapshot** product name and unit price so historical orders remain correct if a
-product later changes. `RowVersion` is the optimistic-concurrency token on Product.
+**Localized product names are stored in the database.** Each product has a required canonical
+`Name` in the base culture (**English, `en`**), plus zero or more `ProductTranslation` rows for
+other cultures (e.g. Estonian, `et`). When a requested culture has no translation, the name **falls
+back to the canonical `Name`**. The base-culture name is mandatory; all others are optional.
 
-`ProductName` is stored as a stable catalog key; the **display name is localized client-side** via
-resource files (see §8), so the database stays language-neutral.
+Order lines **snapshot** the **canonical** product name and unit price so historical orders and the
+funds-raised report stay correct and language-stable even if a product is later renamed.
+`RowVersion` is the optimistic-concurrency token on Product.
 
 ## 5. REST API
 
@@ -112,6 +116,11 @@ documented with Swagger/OpenAPI).
 | GET | `/api/orders/{id}` | Order detail incl. change breakdown | 200 / 404 |
 | GET | `/api/reports/summary` | Funds raised, items sold | 200 |
 | Hub | `/hubs/stock` | SignalR `StockChanged(productId, newQuantity)` | — |
+
+Product endpoints resolve the **localized name via the `Accept-Language` request header**, falling
+back to the canonical name when no translation exists; the client re-fetches the catalog when the
+user switches language (cheap, and stock is live over SignalR anyway). This is standard HTTP content
+negotiation rather than leaking every translation to the client.
 
 The **cart is client-side only** — there are no cart endpoints. The server always recomputes totals
 authoritatively from current prices at checkout; client-side totals are display only.
@@ -165,20 +174,25 @@ mockable in tests.
 
 - **Languages: Estonian (`et`) and English (`en`).** English is the default; a language switcher in
   the UI toggles culture, persisted to `localStorage`.
-- Implemented with standard .NET localization: `IStringLocalizer` + `.resx` resource files per
-  culture for all user-facing strings — product display names, buttons, checkout/change labels,
-  validation and error messages.
+- **Two sources of localized text:**
+  - **Static UI chrome** (buttons, checkout/change labels, validation and error messages) — `.resx`
+    resource files per culture via `IStringLocalizer` in the Blazor app.
+  - **Product names** — stored in the database (canonical `Name` + `ProductTranslation` rows) and
+    delivered already-resolved by the API via `Accept-Language` content negotiation, with fallback
+    to the canonical English name (see §4, §5).
 - Numbers and currency are formatted per the active culture.
-- The database stays language-neutral (stores a stable product key); display names are resolved
-  client-side.
-- E2E scenarios include switching language and asserting localized labels.
+- Switching language updates the UI chrome immediately and re-fetches the catalog so product names
+  reflect the new culture.
+- E2E scenarios include switching language and asserting both localized chrome and localized product
+  names (including fallback when a translation is absent).
 
 ## 9. Seeding (bonus)
 
-A `seed.json` configuration file holds edible items (name, price, quantity) and second-hand items
-(name, price, quantity 0). On startup the seeder upserts items into the database if the catalog is
-empty. File path and values are configurable, satisfying the bonus "read items, quantity and price
-from a configuration file to database."
+A `seed.json` configuration file holds edible items and second-hand items, each with the canonical
+English name, optional translations (e.g. an Estonian name), price, and starting quantity
+(second-hand items start at 0). On startup the seeder upserts products and their translations into
+the database if the catalog is empty. File path and values are configurable, satisfying the bonus
+"read items, quantity and price from a configuration file to database."
 
 ## 10. Docker
 
