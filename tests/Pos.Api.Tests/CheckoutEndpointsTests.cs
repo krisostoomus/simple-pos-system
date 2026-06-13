@@ -82,6 +82,29 @@ public sealed class CheckoutEndpointsTests(PosApiFactory factory)
         Assert.Equal(firstResult!.OrderId, secondResult!.OrderId); // replay returns the same order
     }
 
+    [Fact]
+    public async Task Checkout_ConcurrentSameIdempotencyKey_NoDuplicateAndNo500()
+    {
+        var client = factory.CreateClient();
+        var key = Guid.NewGuid();
+        var body = new { lines = new[] { new { productId = 1, quantity = 1 } }, cashPaidCents = 100 };
+
+        // Two genuinely concurrent submits of the same key (the double-submit race).
+        var responses = await Task.WhenAll(
+            client.SendAsync(Checkout(body, key)),
+            client.SendAsync(Checkout(body, key)));
+
+        // Neither returns 500; both resolve to the same single order (one created, one replayed).
+        Assert.All(responses, r =>
+            Assert.True(r.StatusCode is HttpStatusCode.Created or HttpStatusCode.OK,
+                $"unexpected status {(int)r.StatusCode}"));
+
+        var ids = new List<int>();
+        foreach (var r in responses)
+            ids.Add((await r.Content.ReadFromJsonAsync<CheckoutView>())!.OrderId);
+        Assert.Equal(ids[0], ids[1]);
+    }
+
     public sealed record CheckoutView(int OrderId, int TotalCents, int CashPaidCents, int ChangeCents);
     public sealed record ProblemView(
         [property: System.Text.Json.Serialization.JsonPropertyName("errorCode")] string ErrorCode);

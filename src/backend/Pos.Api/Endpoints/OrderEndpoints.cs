@@ -1,6 +1,7 @@
 using Pos.Api.Contracts;
 using Pos.Application.Abstractions;
 using Pos.Application.Checkout;
+using Pos.Domain.Payments;
 
 namespace Pos.Api.Endpoints;
 
@@ -39,6 +40,8 @@ public static class OrderEndpoints
                 totalCents = order.TotalCents,
                 cashPaidCents = order.CashPaidCents,
                 changeCents = order.ChangeCents,
+                change = ChangeCalculator.Calculate(order.ChangeCents)
+                    .Select(p => new { denominationCents = p.DenominationCents, count = p.Count }),
                 lines = order.Lines.Select(l => new
                 {
                     productId = l.ProductId,

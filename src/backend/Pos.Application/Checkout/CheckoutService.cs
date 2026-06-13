@@ -57,6 +57,14 @@ public sealed class CheckoutService
             {
                 // Reload-and-retry: the next ProcessAsync loads fresh product state.
             }
+            catch (DuplicateIdempotencyKeyException)
+            {
+                // A concurrent request with the same key won the race; return its order (replay).
+                var winner = await _orders.GetByIdempotencyKeyAsync(request.IdempotencyKey, ct);
+                if (winner is not null)
+                    return Map(winner);
+                throw;
+            }
         }
     }
 

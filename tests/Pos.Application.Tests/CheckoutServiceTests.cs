@@ -190,4 +190,27 @@ public class CheckoutServiceTests
 
         await _uow.Received(2).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Checkout_OnDuplicateIdempotencyKeyRace_ReturnsWinningOrder()
+    {
+        RealisticPayment();
+        _products.GetByIdsAsync(Arg.Any<IReadOnlyCollection<int>>())
+            .Returns(_ => [TestData.Product(1, "Brownie", priceCents: 65, stock: 10)]);
+
+        var key = Guid.NewGuid();
+        var winner = Order.Create(
+            [new OrderLine(1, "Brownie", 65, 2)], cashPaidCents: 130, changeCents: 0,
+            idempotencyKey: key, createdAtUtc: _clock.GetUtcNow().UtcDateTime);
+        TestData.SetId(winner, 777);
+        // First lookup (pre-insert) finds nothing; after the unique-violation, the winner is visible.
+        _orders.GetByIdempotencyKeyAsync(key).Returns((Order?)null, winner);
+        _uow.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Throws(new DuplicateIdempotencyKeyException());
+
+        var request = new CheckoutRequest([new CheckoutLine(1, 2)], 130, key);
+        var result = await CreateSut().CheckoutAsync(request);
+
+        Assert.Equal(777, result.OrderId); // replayed the concurrent winner instead of failing
+    }
 }
