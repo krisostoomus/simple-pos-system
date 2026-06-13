@@ -42,11 +42,13 @@ Second-hand items (fixed price; **quantity entered on the day** via an admin pag
 **In scope:** product catalog with live stock, click-to-add cart, running total, checkout with
 cash entry and smallest-change calculation, transactional stock decrement with optimistic
 concurrency, live stock sync across tablets, order persistence, funds-raised summary, admin stock
-entry for second-hand items, config-file seeding (bonus), Estonian/English localization, Swagger,
-Docker Compose, unit + integration + Gherkin E2E tests, C4 + Mermaid docs.
+entry for second-hand items, lightweight JWT auth on the admin/back-office surface, API landing page
++ health endpoint, config-file seeding (bonus), Estonian/English localization, Swagger, Docker
+Compose, unit + integration + Gherkin E2E tests, C4 + Mermaid docs.
 
-**Out of scope (documented as "what I'd improve"):** authentication/login, real payment provider,
-finite cash-drawer tracking, CI/CD pipeline, multi-day/multi-event support, reservations.
+**Out of scope (documented as "what I'd improve"):** full identity (per-seller accounts,
+registration, OIDC, refresh-token rotation), real payment provider, finite cash-drawer tracking,
+CI/CD pipeline, multi-day/multi-event support, reservations.
 
 ## 3. Architecture
 
@@ -119,22 +121,41 @@ headers, and OpenAPI exposes one document per version (e.g. a "v1" Swagger doc).
 changes would ship under `/api/v2` while v1 continues to serve, demonstrating a forward-compatible
 contract. The SignalR hub is transport, not REST, so it is not version-segmented.
 
-| Method | Route | Purpose | Responses |
-|---|---|---|---|
-| GET | `/api/v1/products` | Catalog with price + live stock | 200 |
-| GET | `/api/v1/products/{id}` | Single product | 200 / 404 |
-| PUT | `/api/v1/products/{id}/stock` | Set second-hand quantity on the day (admin) | 200 / 404 / 400 |
-| POST | `/api/v1/orders` | Checkout — lines + cashPaidCents (+ idempotency key) | 201 / 409 / 422 / 400 |
-| GET | `/api/v1/orders/{id}` | Order detail incl. change breakdown | 200 / 404 |
-| GET | `/api/v1/reports/summary` | Funds raised, items sold | 200 |
-| Hub | `/hubs/stock` | SignalR `StockChanged(productId, newQuantity)` | — |
+| Method | Route | Purpose | Auth | Responses |
+|---|---|---|---|---|
+| GET | `/` | Landing page: name, version, links to Swagger/health/token | public | 200 |
+| GET | `/health` | Health check (used by Docker) | public | 200 / 503 |
+| POST | `/api/v1/auth/token` | Exchange seeded staff credential for a JWT | public | 200 / 401 |
+| GET | `/api/v1/products` | Catalog with price + live stock | public | 200 |
+| GET | `/api/v1/products/{id}` | Single product | public | 200 / 404 |
+| PUT | `/api/v1/products/{id}/stock` | Set second-hand quantity on the day (admin) | **staff** | 200 / 401 / 403 / 404 / 400 |
+| POST | `/api/v1/orders` | Checkout — lines + cashPaidCents (+ idempotency key) | public | 201 / 409 / 422 / 400 |
+| GET | `/api/v1/orders/{id}` | Order detail incl. change breakdown | public | 200 / 404 |
+| GET | `/api/v1/reports/summary` | Funds raised, items sold | **staff** | 200 / 401 / 403 |
+| Hub | `/hubs/stock` | SignalR `StockChanged(productId, newQuantity)` | public | — |
 
-`GET /api/reports/summary` returns: total funds raised (cents), order count, and an items-sold
+`GET /api/v1/reports/summary` returns: total funds raised (cents), order count, and an items-sold
 breakdown per product (quantity and line revenue in cents).
 
-The admin stock endpoint is **unauthenticated by design** — tablets are anonymous (§ seller
-identity decision). In production it would sit behind staff authentication; called out as a
-conscious trade-off, not an oversight.
+### Authentication & authorization
+
+The **selling path stays anonymous** — sellers on tablets call `GET /products`, `POST /orders`, and
+`GET /orders/{id}` without logging in, matching the homework's tablet UX. The **administrative and
+back-office surface is protected with JWT bearer auth**: `PUT /products/{id}/stock` and
+`GET /reports/summary` require a token carrying the `staff` role.
+
+- **Token issuance:** `POST /api/v1/auth/token` accepts a **seeded staff credential** (username +
+  password from configuration — not a user store) and returns a short-lived signed JWT with a
+  `staff` role claim. This is a deliberately minimal, real auth seam — full identity (registration,
+  OIDC, refresh-token rotation) is out of scope and noted under §14.
+- **Validation:** standard `JwtBearer` authentication with a symmetric signing key from
+  configuration; authorization via a `staff` policy. Missing/invalid token → **401**; valid token
+  lacking the role → **403**, both as `ProblemDetails`.
+- **Swagger:** a Bearer security scheme is registered so the UI shows an **Authorize** button; the
+  landing page explains how to obtain a token.
+- **Rationale:** changing inventory is a privileged action that should not be open to any anonymous
+  device, while keeping checkout open preserves the fast multi-tablet selling flow. This mirrors the
+  fake-payment approach — a genuine mechanism on a minimal seam.
 
 Product endpoints resolve the **localized name via the `Accept-Language` request header**, falling
 back to the canonical name when no translation exists; the client re-fetches the catalog when the
@@ -251,8 +272,10 @@ from environment/config. `DEPLOY.md` documents the full bring-up.
   notifier).
 - **Integration (xUnit + WebApplicationFactory + Testcontainers Postgres):** all endpoints against a
   real Postgres, seeding, a **parallel-checkout concurrency test** asserting exactly one 409 on the
-  last item, an **idempotency test** (same key replayed → one order, no double-decrement), and
-  assertions that error responses carry the expected `errorCode`.
+  last item, an **idempotency test** (same key replayed → one order, no double-decrement),
+  **auth tests** (protected endpoint → 401 without token, 403 with a non-staff token, 200 with a
+  valid staff token; `/auth/token` issues a token for the seeded credential), and assertions that
+  error responses carry the expected `errorCode`.
 - **E2E (Reqnroll/Gherkin + Playwright):** buy items → total updates → out-of-stock graying →
   checkout shows correct change → reset; plus a language-switch scenario asserting localized labels.
 
@@ -275,6 +298,7 @@ from environment/config. `DEPLOY.md` documents the full bring-up.
 
 ## 14. What I'd improve (production)
 
-Authentication per seller; a real payment provider behind the existing `IPaymentService` seam;
-finite cash-drawer tracking with denomination-aware change; pessimistic locking or stock
-reservations under heavy contention; a CI/CD pipeline; multi-event support.
+Full identity over the current JWT seam (per-seller accounts, OIDC/SSO, refresh-token rotation,
+password management); a real payment provider behind the existing `IPaymentService` seam; finite
+cash-drawer tracking with denomination-aware change; pessimistic locking or stock reservations under
+heavy contention; a CI/CD pipeline; multi-event support.
