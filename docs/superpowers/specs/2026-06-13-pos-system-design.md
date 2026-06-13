@@ -78,6 +78,8 @@ tests/
 - **Blazor WebAssembly (standalone)**, not Blazor Server — gives genuine frontend/backend
   separation over HTTP. The web app is a static SPA served from its own container.
 - **MudBlazor** for UI — neat, minimal, themable to a custom green palette.
+- **Product images** are static assets bundled in the frontend, resolved by the product's
+  `ImageKey`, with a generic placeholder fallback when an image is missing.
 - **.NET 10** target. **Money is integer cents everywhere; never floating point.**
 - **Localization: Estonian + English** (see §8).
 
@@ -88,8 +90,11 @@ tests/
 
 - **Product**: `Id, Name (canonical/base-culture, required), Category (Edible | SecondHand),
   PriceCents, StockQuantity, ImageKey, IsActive, RowVersion`
-- **ProductTranslation**: `Id, ProductId, CultureCode, Name` — one row per non-base language
-- **Order**: `Id, CreatedAtUtc, TotalCents, CashPaidCents, ChangeCents` + lines
+- **ProductTranslation**: `Id, ProductId, CultureCode, Name` — one row per non-base language.
+  Unique constraint on `(ProductId, CultureCode)`. Culture codes are **neutral** (`en`, `et`);
+  incoming `Accept-Language` values are matched down to their neutral culture.
+- **Order**: `Id, CreatedAtUtc, TotalCents, CashPaidCents, ChangeCents, IdempotencyKey (unique)` +
+  lines
 - **OrderLine**: `Id, OrderId, ProductId, ProductName (snapshot), UnitPriceCents (snapshot),
   Quantity, LineTotalCents`
 
@@ -112,10 +117,17 @@ documented with Swagger/OpenAPI).
 | GET | `/api/products` | Catalog with price + live stock | 200 |
 | GET | `/api/products/{id}` | Single product | 200 / 404 |
 | PUT | `/api/products/{id}/stock` | Set second-hand quantity on the day (admin) | 200 / 404 / 400 |
-| POST | `/api/orders` | Checkout — lines + cashPaidCents | 201 / 409 / 422 / 400 |
+| POST | `/api/orders` | Checkout — lines + cashPaidCents (+ idempotency key) | 201 / 409 / 422 / 400 |
 | GET | `/api/orders/{id}` | Order detail incl. change breakdown | 200 / 404 |
 | GET | `/api/reports/summary` | Funds raised, items sold | 200 |
 | Hub | `/hubs/stock` | SignalR `StockChanged(productId, newQuantity)` | — |
+
+`GET /api/reports/summary` returns: total funds raised (cents), order count, and an items-sold
+breakdown per product (quantity and line revenue in cents).
+
+The admin stock endpoint is **unauthenticated by design** — tablets are anonymous (§ seller
+identity decision). In production it would sit behind staff authentication; called out as a
+conscious trade-off, not an oversight.
 
 Product endpoints resolve the **localized name via the `Accept-Language` request header**, falling
 back to the canonical name when no translation exists; the client re-fetches the catalog when the
@@ -126,21 +138,36 @@ The **cart is client-side only** — there are no cart endpoints. The server alw
 authoritatively from current prices at checkout; client-side totals are display only.
 
 Status-code semantics for checkout:
-- **409 Conflict** — insufficient stock for a line, or optimistic-concurrency conflict; body names
-  the offending product.
+- **409 Conflict** — insufficient stock for a line, or an optimistic-concurrency conflict.
 - **422 Unprocessable Entity** — cash paid is less than the total.
-- **400 Bad Request** — empty cart, zero/negative quantities, unknown product.
+- **400 Bad Request** — empty cart, zero/negative quantities, or an unknown product id in a line.
 - **201 Created** — success; body includes order id, total, and the change breakdown.
+
+**Machine-readable errors.** All error responses are `ProblemDetails` carrying a language-neutral
+`errorCode` and, where relevant, the offending `productId` — never localized prose. The codes:
+`out_of_stock`, `concurrency_conflict`, `insufficient_payment`, `empty_cart`, `invalid_quantity`,
+`unknown_product`. This lets the client react programmatically — **auto-retry** a
+`concurrency_conflict`, **stop and refresh** on `out_of_stock` — and render the user-facing message
+from its own `.resx` resources (see §8), keeping the API language-agnostic.
+
+**Idempotent checkout.** `POST /api/orders` accepts a client-generated idempotency key (header
+`Idempotency-Key`, a GUID). The key is persisted with the order; a replay with the same key returns
+the **original** order (201/200) instead of creating a duplicate or double-decrementing stock —
+guarding against double-submits on flaky tablet/phone networks.
 
 ## 6. Checkout & concurrency flow
 
 1. Seller taps product images → client cart; running total shown at the bottom (display only).
 2. Checkout modal prompts for cash received.
-3. `POST /api/orders` with line items + `cashPaidCents`.
-4. Server, in **one DB transaction**: load products → validate stock per line (else 409, naming the
-   item) → validate `cashPaid ≥ total` (else 422) → decrement stock → `SaveChanges` with
-   **optimistic concurrency** via `RowVersion`. On `DbUpdateConcurrencyException`: reload and retry
-   once; if still conflicting → 409.
+3. `POST /api/orders` with line items + `cashPaidCents` + an `Idempotency-Key` header.
+4. Server checks the idempotency key: if an order already exists for it, return that order
+   immediately (no new work). Otherwise, in **one DB transaction**: load products → validate stock
+   per line (else 409 `out_of_stock`) → validate `cashPaid ≥ total` (else 422
+   `insufficient_payment`) → decrement stock → `SaveChanges` with **optimistic concurrency** via
+   `RowVersion`. On `DbUpdateConcurrencyException`: reload products, **re-run stock validation**, and
+   retry once; the retry succeeds if stock is still sufficient, otherwise returns 409
+   `concurrency_conflict`/`out_of_stock`. (This is why the parallel-checkout test sees exactly one
+   failure on the last item: after reload the loser observes stock = 0.)
 5. Compute change with the pure **ChangeCalculator** (greedy over standard euro denominations:
    500, 200, 100, 50, 20, 10, 5, 2, 1 € and 50, 20, 10, 5, 2, 1 c), returning the full piece
    breakdown. Greedy is optimal for the euro denomination set; the drawer is assumed unlimited.
@@ -166,7 +193,10 @@ mockable in tests.
 - Concurrent last-item sale by two sellers → exactly one succeeds, the other gets 409.
 - Empty cart checkout → 400.
 - Zero or negative quantities → validation error (400).
-- Unknown product id → 400/404.
+- Unknown product id → **404** on `PUT /products/{id}/stock`; **400** (`unknown_product`) when it
+  appears in a checkout line.
+- Double-submitted checkout (network retry) → idempotency key returns the original order, no
+  duplicate or double-decrement.
 - Second-hand items start at 0 stock until entered on the day (grayed until then).
 - All money handled as integer cents; no floating-point arithmetic.
 
@@ -200,7 +230,8 @@ the database if the catalog is empty. File path and values are configurable, sat
 
 - **postgres** — database, healthchecked, named volume for persistence.
 - **api** — applies EF migrations and runs the seeder on startup, healthchecked; depends on a
-  healthy postgres.
+  healthy postgres. (Migrate-on-startup assumes a single api instance, which is the case here;
+  multiple instances would need a migration gate.)
 - **web** — nginx serving the compiled Blazor WebAssembly bundle; depends on the api.
 
 CORS on the api is configured for the web origin. Connection strings and the seed file path come
@@ -212,8 +243,9 @@ from environment/config. `DEPLOY.md` documents the full bring-up.
   and checkout rules; Application services with **NSubstitute**-mocked ports (payment, repos,
   notifier).
 - **Integration (xUnit + WebApplicationFactory + Testcontainers Postgres):** all endpoints against a
-  real Postgres, seeding, and a **parallel-checkout concurrency test** asserting exactly one 409 on
-  the last item.
+  real Postgres, seeding, a **parallel-checkout concurrency test** asserting exactly one 409 on the
+  last item, an **idempotency test** (same key replayed → one order, no double-decrement), and
+  assertions that error responses carry the expected `errorCode`.
 - **E2E (Reqnroll/Gherkin + Playwright):** buy items → total updates → out-of-stock graying →
   checkout shows correct change → reset; plus a language-switch scenario asserting localized labels.
 
