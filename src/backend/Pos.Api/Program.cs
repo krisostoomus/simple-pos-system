@@ -96,7 +96,8 @@ if (!app.Environment.IsEnvironment("IntegrationTest") ||
     var db = scope.ServiceProvider.GetRequiredService<PosDbContext>();
     await db.Database.MigrateAsync();
     var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
-    await seeder.SeedAsync(app.Environment.ContentRootPath);
+    // seed.json is copied to the build output, so resolve relative paths against the app base dir.
+    await seeder.SeedAsync(AppContext.BaseDirectory);
 }
 
 app.Run();
