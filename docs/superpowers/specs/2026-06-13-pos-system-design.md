@@ -110,16 +110,23 @@ funds-raised report stay correct and language-stable even if a product is later 
 ## 5. REST API
 
 Follows REST best practices (plural nouns, correct status codes, `ProblemDetails` for errors,
-documented with Swagger/OpenAPI).
+**API versioning**, documented with Swagger/OpenAPI).
+
+**API versioning.** REST endpoints are versioned with **URL-segment versioning** (`/api/v1/...`)
+via the `Asp.Versioning.Http` library. The current version is **v1**; supported and deprecated
+versions are advertised in the `api-supported-versions` / `api-deprecated-versions` response
+headers, and OpenAPI exposes one document per version (e.g. a "v1" Swagger doc). New breaking
+changes would ship under `/api/v2` while v1 continues to serve, demonstrating a forward-compatible
+contract. The SignalR hub is transport, not REST, so it is not version-segmented.
 
 | Method | Route | Purpose | Responses |
 |---|---|---|---|
-| GET | `/api/products` | Catalog with price + live stock | 200 |
-| GET | `/api/products/{id}` | Single product | 200 / 404 |
-| PUT | `/api/products/{id}/stock` | Set second-hand quantity on the day (admin) | 200 / 404 / 400 |
-| POST | `/api/orders` | Checkout — lines + cashPaidCents (+ idempotency key) | 201 / 409 / 422 / 400 |
-| GET | `/api/orders/{id}` | Order detail incl. change breakdown | 200 / 404 |
-| GET | `/api/reports/summary` | Funds raised, items sold | 200 |
+| GET | `/api/v1/products` | Catalog with price + live stock | 200 |
+| GET | `/api/v1/products/{id}` | Single product | 200 / 404 |
+| PUT | `/api/v1/products/{id}/stock` | Set second-hand quantity on the day (admin) | 200 / 404 / 400 |
+| POST | `/api/v1/orders` | Checkout — lines + cashPaidCents (+ idempotency key) | 201 / 409 / 422 / 400 |
+| GET | `/api/v1/orders/{id}` | Order detail incl. change breakdown | 200 / 404 |
+| GET | `/api/v1/reports/summary` | Funds raised, items sold | 200 |
 | Hub | `/hubs/stock` | SignalR `StockChanged(productId, newQuantity)` | — |
 
 `GET /api/reports/summary` returns: total funds raised (cents), order count, and an items-sold
