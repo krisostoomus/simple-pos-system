@@ -1,0 +1,13 @@
+{
+  "products": [
+    { "name": "Brownie",    "category": "Edible",     "priceCents": 65,  "stockQuantity": 48, "imageKey": "brownie",   "translations": { "et": "Brauni" } },
+    { "name": "Muffin",     "category": "Edible",     "priceCents": 100, "stockQuantity": 36, "imageKey": "muffin",    "translations": { "et": "Muffin" } },
+    { "name": "Cake Pop",   "category": "Edible",     "priceCents": 135, "stockQuantity": 24, "imageKey": "cakepop",   "translations": { "et": "Koogipall" } },
+    { "name": "Apple tart", "category": "Edible",     "priceCents": 150, "stockQuantity": 60, "imageKey": "appletart", "translations": { "et": "Õunakook" } },
+    { "name": "Water",      "category": "Edible",     "priceCents": 150, "stockQuantity": 30, "imageKey": "water",     "translations": { "et": "Vesi" } },
+    { "name": "Shirt",      "category": "SecondHand", "priceCents": 200, "stockQuantity": 0,  "imageKey": "shirt",     "translations": { "et": "Särk" } },
+    { "name": "Pants",      "category": "SecondHand", "priceCents": 300, "stockQuantity": 0,  "imageKey": "pants",     "translations": { "et": "Püksid" } },
+    { "name": "Jacket",     "category": "SecondHand", "priceCents": 400, "stockQuantity": 0,  "imageKey": "jacket",    "translations": { "et": "Jope" } },
+    { "name": "Toy",        "category": "SecondHand", "priceCents": 100, "stockQuantity": 0,  "imageKey": "toy",       "translations": { "et": "Mänguasi" } }
+  ]
+}
