@@ -3,6 +3,7 @@
   <Folder Name="/src/backend/">
     <Project Path="src/backend/Pos.Application/Pos.Application.csproj" />
     <Project Path="src/backend/Pos.Domain/Pos.Domain.csproj" />
+    <Project Path="src/backend/Pos.Infrastructure/Pos.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Pos.Application.Tests/Pos.Application.Tests.csproj" />
