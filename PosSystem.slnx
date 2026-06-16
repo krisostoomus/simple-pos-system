@@ -13,6 +13,7 @@
     <Project Path="tests/Pos.Api.Tests/Pos.Api.Tests.csproj" />
     <Project Path="tests/Pos.Application.Tests/Pos.Application.Tests.csproj" />
     <Project Path="tests/Pos.Domain.Tests/Pos.Domain.Tests.csproj" />
+    <Project Path="tests/Pos.E2E.Tests/Pos.E2E.Tests.csproj" />
     <Project Path="tests/Pos.Web.Tests/Pos.Web.Tests.csproj" />
   </Folder>
 </Solution>
