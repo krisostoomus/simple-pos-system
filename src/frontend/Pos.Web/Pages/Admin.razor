@@ -1,0 +1,62 @@
+@page "/admin"
+@inject PosApiClient Api
+@inject AuthState Auth
+@inject IDialogService Dialogs
+@inject IStringLocalizer<UiStrings> L
+
+<MudText Typo="Typo.h4" Class="mb-4">@L["Admin"]</MudText>
+
+@if (!Auth.IsStaff)
+{
+    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ShowLogin">@L["StaffLogin"]</MudButton>
+}
+else if (_products is not null)
+{
+    <MudTable Items="SecondHandProducts" Hover="true">
+        <HeaderContent>
+            <MudTh>@L["SecondHand"]</MudTh><MudTh>@L["Quantity"]</MudTh><MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>
+                <MudNumericField T="int" Value="@_edits[context.Id]" Min="0"
+                                 ValueChanged="@(v => _edits[context.Id] = v)" />
+            </MudTd>
+            <MudTd>
+                <MudButton Size="Size.Small" Color="Color.Primary" OnClick="@(() => Save(context.Id))">@L["Save"]</MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private IReadOnlyList<ProductModel>? _products;
+    private readonly Dictionary<int, int> _edits = new();
+    private IEnumerable<ProductModel> SecondHandProducts =>
+        _products?.Where(p => p.Category == "SecondHand") ?? Enumerable.Empty<ProductModel>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Auth.Changed += async () => await InvokeAsync(async () => { await Load(); StateHasChanged(); });
+        if (Auth.IsStaff) await Load();
+    }
+
+    private async Task Load()
+    {
+        _products = await Api.GetProductsAsync();
+        foreach (var p in _products) _edits[p.Id] = p.StockQuantity;
+    }
+
+    private async Task ShowLogin()
+    {
+        var dialog = await Dialogs.ShowAsync<StaffLoginDialog>(L["StaffLogin"]);
+        var result = await dialog.Result;
+        if (result is not null && !result.Canceled) await Load();
+    }
+
+    private async Task Save(int productId)
+    {
+        await Api.SetStockAsync(productId, _edits[productId]);
+        await Load();
+    }
+}
