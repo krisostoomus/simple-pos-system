@@ -1,0 +1,85 @@
+@page "/"
+@implements IDisposable
+@inject PosApiClient Api
+@inject CartService Cart
+@inject StockHubClient Hub
+@inject IDialogService Dialogs
+@inject IStringLocalizer<UiStrings> L
+
+<MudText Typo="Typo.h4" Class="mb-4">@L["AppTitle"]</MudText>
+
+@if (_products is null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        @foreach (var p in _products)
+        {
+            <MudItem xs="6" sm="4" md="3">
+                <ProductCard Product="p" Quantity="Cart.QuantityOf(p.Id)" OnAddToCart="Add" />
+            </MudItem>
+        }
+    </MudGrid>
+
+    <MudPaper Class="pa-4 mt-4 d-flex align-center" Elevation="3" Style="position:sticky; bottom:0;">
+        <MudText Typo="Typo.h5">@L["Total"]: @ProductCard.FormatEuro(TotalCents)</MudText>
+        <MudSpacer />
+        <MudButton OnClick="Reset" Disabled="Cart.IsEmpty" StartIcon="@Icons.Material.Filled.Clear" Class="mr-2">@L["Reset"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="OpenCheckout" Disabled="Cart.IsEmpty"
+                   StartIcon="@Icons.Material.Filled.ShoppingCartCheckout">@L["Checkout"]</MudButton>
+    </MudPaper>
+}
+
+@code {
+    private IReadOnlyList<ProductModel>? _products;
+    private Dictionary<int, int> _priceById = new();
+
+    private int TotalCents => Cart.TotalCents(_priceById);
+
+    protected override async Task OnInitializedAsync()
+    {
+        Cart.Changed += StateHasChanged;
+        Hub.StockChanged += OnStockChanged;
+        await Hub.StartAsync();
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        _products = await Api.GetProductsAsync();
+        _priceById = _products.ToDictionary(p => p.Id, p => p.PriceCents);
+    }
+
+    private void Add(int productId) => Cart.Add(productId);
+    private void Reset() => Cart.Reset();
+
+    private void OnStockChanged(int productId, int newQuantity)
+    {
+        if (_products is null) return;
+        _products = _products
+            .Select(p => p.Id == productId ? p with { StockQuantity = newQuantity, IsOutOfStock = newQuantity <= 0 } : p)
+            .ToList();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenCheckout()
+    {
+        var body = new CheckoutBody(Cart.ToLines(), CashPaidCents: 0);
+        var parameters = new DialogParameters { ["TotalCents"] = TotalCents, ["Body"] = body };
+        var dialog = await Dialogs.ShowAsync<CheckoutDialog>(L["Checkout"], parameters);
+        var result = await dialog.Result;
+        if (result is not null && !result.Canceled)
+        {
+            Cart.Reset();
+            await Load(); // refresh stock after a completed sale
+        }
+    }
+
+    public void Dispose()
+    {
+        Cart.Changed -= StateHasChanged;
+        Hub.StockChanged -= OnStockChanged;
+    }
+}
