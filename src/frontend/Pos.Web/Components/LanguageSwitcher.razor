@@ -1,0 +1,11 @@
+@using Pos.Web.Services
+@inject CultureService Culture
+
+<MudMenu Icon="@Icons.Material.Filled.Language" Color="Color.Inherit" Dense="true">
+    <MudMenuItem OnClick="@(() => Switch("en"))">English</MudMenuItem>
+    <MudMenuItem OnClick="@(() => Switch("et"))">Eesti</MudMenuItem>
+</MudMenu>
+
+@code {
+    private async Task Switch(string culture) => await Culture.SetAsync(culture);
+}
