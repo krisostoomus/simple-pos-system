@@ -1,7 +1,6 @@
 using Pos.Api.Contracts;
 using Pos.Application.Abstractions;
 using Pos.Application.Checkout;
-using Pos.Domain.Payments;
 
 namespace Pos.Api.Endpoints;
 
@@ -30,27 +29,7 @@ public static class OrderEndpoints
         group.MapGet("/orders/{id:int}", async (int id, IOrderRepository orders, CancellationToken ct) =>
         {
             var order = await orders.GetByIdAsync(id, ct);
-            if (order is null)
-                return Results.NotFound();
-
-            return Results.Ok(new
-            {
-                id = order.Id,
-                createdAtUtc = order.CreatedAtUtc,
-                totalCents = order.TotalCents,
-                cashPaidCents = order.CashPaidCents,
-                changeCents = order.ChangeCents,
-                change = ChangeCalculator.Calculate(order.ChangeCents)
-                    .Select(p => new { denominationCents = p.DenominationCents, count = p.Count }),
-                lines = order.Lines.Select(l => new
-                {
-                    productId = l.ProductId,
-                    productName = l.ProductName,
-                    unitPriceCents = l.UnitPriceCents,
-                    quantity = l.Quantity,
-                    lineTotalCents = l.LineTotalCents,
-                }),
-            });
+            return order is null ? Results.NotFound() : Results.Ok(OrderMapper.ToResult(order));
         });
 
         return group;

@@ -18,14 +18,14 @@ public sealed class CatalogService
     public async Task<IReadOnlyList<ProductDto>> GetProductsAsync(string? culture, CancellationToken ct = default)
     {
         var products = await _products.GetAllActiveAsync(ct);
-        var neutral = ToNeutral(culture);
+        var neutral = CultureHelper.ToNeutral(culture);
         return products.Select(p => ToDto(p, neutral)).ToList();
     }
 
     public async Task<ProductDto?> GetProductAsync(int id, string? culture, CancellationToken ct = default)
     {
         var product = await _products.GetByIdAsync(id, ct);
-        return product is null ? null : ToDto(product, ToNeutral(culture));
+        return product is null ? null : ToDto(product, CultureHelper.ToNeutral(culture));
     }
 
     public async Task SetStockAsync(int id, int quantity, CancellationToken ct = default)
@@ -39,9 +39,6 @@ public sealed class CatalogService
         product.SetStock(quantity);
         await _uow.SaveChangesAsync(ct);
     }
-
-    private static string? ToNeutral(string? culture)
-        => string.IsNullOrWhiteSpace(culture) ? null : culture.Split('-')[0].ToLowerInvariant();
 
     private static ProductDto ToDto(Product p, string? neutralCulture)
         => new(p.Id, p.GetName(neutralCulture), p.Category.ToString(),

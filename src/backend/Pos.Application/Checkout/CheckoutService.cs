@@ -2,7 +2,6 @@ using Pos.Application.Abstractions;
 using Pos.Application.Exceptions;
 using Pos.Domain.Exceptions;
 using Pos.Domain.Orders;
-using Pos.Domain.Payments;
 
 namespace Pos.Application.Checkout;
 
@@ -41,7 +40,7 @@ public sealed class CheckoutService
 
         var existing = await _orders.GetByIdempotencyKeyAsync(request.IdempotencyKey, ct);
         if (existing is not null)
-            return Map(existing);
+            return OrderMapper.ToResult(existing);
 
         var quantities = request.Lines
             .GroupBy(l => l.ProductId)
@@ -62,7 +61,7 @@ public sealed class CheckoutService
                 // A concurrent request with the same key won the race; return its order (replay).
                 var winner = await _orders.GetByIdempotencyKeyAsync(request.IdempotencyKey, ct);
                 if (winner is not null)
-                    return Map(winner);
+                    return OrderMapper.ToResult(winner);
                 throw;
             }
         }
@@ -102,19 +101,6 @@ public sealed class CheckoutService
         foreach (var productId in quantities.Keys)
             await _notifier.NotifyStockChangedAsync(productId, byId[productId].StockQuantity, ct);
 
-        return Map(order);
-    }
-
-    private static CheckoutResult Map(Order order)
-    {
-        var change = ChangeCalculator.Calculate(order.ChangeCents)
-            .Select(p => new ChangePieceDto(p.DenominationCents, p.Count))
-            .ToList();
-        var lines = order.Lines
-            .Select(l => new OrderLineDto(l.ProductId, l.ProductName, l.UnitPriceCents, l.Quantity, l.LineTotalCents))
-            .ToList();
-        return new CheckoutResult(
-            order.Id, order.TotalCents, order.CashPaidCents, order.ChangeCents,
-            change, lines, order.CreatedAtUtc);
+        return OrderMapper.ToResult(order);
     }
 }

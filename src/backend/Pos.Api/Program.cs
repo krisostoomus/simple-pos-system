@@ -8,6 +8,9 @@ using Microsoft.IdentityModel.Tokens;
 using Pos.Api.Endpoints;
 using Pos.Api.Errors;
 using Pos.Api.OpenApi;
+using Pos.Application.Catalog;
+using Pos.Application.Checkout;
+using Pos.Application.Reporting;
 using Pos.Infrastructure;
 using Pos.Infrastructure.Auth;
 using Pos.Infrastructure.Persistence;
@@ -17,6 +20,11 @@ using Pos.Infrastructure.Seeding;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Application use-case services (composition root; Application stays DI-package-free).
+builder.Services.AddScoped<CheckoutService>();
+builder.Services.AddScoped<CatalogService>();
+builder.Services.AddScoped<ReportingService>();
 
 // AuthN/AuthZ – resolved via IOptions so tests can override the signing key via in-memory config.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -37,7 +45,7 @@ builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationSc
         };
     });
 builder.Services.AddAuthorization(o =>
-    o.AddPolicy("staff", p => p.RequireRole(TokenService.StaffRole)));
+    o.AddPolicy(TokenService.StaffRole, p => p.RequireRole(TokenService.StaffRole)));
 
 // API versioning
 builder.Services.AddApiVersioning(o =>

@@ -1,4 +1,5 @@
 using Pos.Application.Reporting;
+using Pos.Infrastructure.Auth;
 
 namespace Pos.Api.Endpoints;
 
@@ -11,7 +12,7 @@ public static class ReportEndpoints
             var culture = http.Request.Headers.AcceptLanguage.ToString();
             return Results.Ok(await reporting.GetSummaryAsync(culture, ct));
         })
-        .RequireAuthorization("staff")
+        .RequireAuthorization(TokenService.StaffRole)
         .WithSummary("Funds raised and items sold (staff only).");
 
         return group;

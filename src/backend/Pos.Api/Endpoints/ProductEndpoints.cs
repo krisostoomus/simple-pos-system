@@ -1,5 +1,6 @@
 using Pos.Api.Contracts;
 using Pos.Application.Catalog;
+using Pos.Infrastructure.Auth;
 
 namespace Pos.Api.Endpoints;
 
@@ -26,7 +27,7 @@ public static class ProductEndpoints
             await catalog.SetStockAsync(id, body.Quantity, ct);
             return Results.NoContent();
         })
-        .RequireAuthorization("staff")
+        .RequireAuthorization(TokenService.StaffRole)
         .WithSummary("Set a product's stock quantity (staff only).");
 
         return group;

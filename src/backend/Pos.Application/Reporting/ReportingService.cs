@@ -18,7 +18,7 @@ public sealed class ReportingService
         var totals = await _queries.GetTotalsAsync(ct);
         var products = await _products.GetAllActiveAsync(ct);
         var byId = products.ToDictionary(p => p.Id);
-        var neutral = string.IsNullOrWhiteSpace(culture) ? null : culture.Split('-')[0].ToLowerInvariant();
+        var neutral = CultureHelper.ToNeutral(culture);
 
         var items = totals.Items
             .Select(i => new ItemSoldDto(

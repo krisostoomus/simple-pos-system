@@ -2,9 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Pos.Application.Abstractions;
-using Pos.Application.Catalog;
-using Pos.Application.Checkout;
-using Pos.Application.Reporting;
 using Pos.Infrastructure.Auth;
 using Pos.Infrastructure.Payments;
 using Pos.Infrastructure.Persistence;
@@ -31,11 +28,6 @@ public static class DependencyInjection
 
         services.AddScoped<DatabaseSeeder>();
         services.AddScoped<TokenService>();
-
-        // Application use-case services (composition root).
-        services.AddScoped<CheckoutService>();
-        services.AddScoped<CatalogService>();
-        services.AddScoped<ReportingService>();
 
         services.AddOptions<SeedOptions>().BindConfiguration(SeedOptions.SectionName);
         services.AddOptions<JwtOptions>().BindConfiguration(JwtOptions.SectionName);
