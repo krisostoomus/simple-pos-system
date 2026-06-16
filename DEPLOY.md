@@ -108,12 +108,17 @@ curl -s http://localhost:8081/api/v1/products | jq length   # -> 9
 # then open http://localhost:8080, add items, check out, observe the change breakdown
 ```
 
+> **Startup timing:** the `api` container can report *healthy* a moment before Kestrel is serving on
+> the published host port, so the very first request right after `up --wait` may come back empty.
+> Just retry, or poll until ready: `until curl -fs http://localhost:8081/health >/dev/null; do sleep 1; done`.
+
 ## Troubleshooting
 
 | Symptom | Likely cause / fix |
 |---|---|
 | App loads but product calls fail (CORS error in console) | Browser origin not allowlisted — browse via an origin in `Cors:Origins`, or add yours and rebuild the `api`. |
 | `ERR_CONNECTION_RESET` on API calls from the browser | IPv4/IPv6 mismatch — use `http://localhost:8080` consistently, or `127.0.0.1` for both app and `ApiBaseUrl`. |
+| First request after `up --wait` is empty / connection refused | Startup race — the container is healthy a beat before the port serves. Retry, or poll `/health` until 200 (see "Startup timing" above). |
 | API exits / unhealthy on start | `db` not healthy yet, or a bad `ConnectionStrings__Postgres`. Check `docker compose logs api`. |
 | Port already in use | Another process on 8080/8081 — stop it or remap ports in `docker-compose.yml`. |
 | Stock didn't update on another tablet | SignalR/WebSocket blocked — ensure the API origin is reachable and CORS allows credentials. |
