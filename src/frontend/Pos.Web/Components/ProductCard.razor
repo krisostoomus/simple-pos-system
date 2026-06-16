@@ -4,7 +4,7 @@
     <MudCardMedia Image="@ImageUrl" Height="120" />
     <MudCardContent>
         <MudText Typo="Typo.subtitle1">@Product.Name</MudText>
-        <MudText Typo="Typo.body2">@FormatEuro(Product.PriceCents)</MudText>
+        <MudText Typo="Typo.body2">@Money.FormatEuro(Product.PriceCents)</MudText>
         @if (Product.IsOutOfStock)
         {
             <MudChip T="string" Color="Color.Default" Size="Size.Small">@L["OutOfStock"]</MudChip>
@@ -33,6 +33,4 @@
         if (Product.IsOutOfStock) return;
         await OnAddToCart.InvokeAsync(Product.Id);
     }
-
-    public static string FormatEuro(int cents) => (cents / 100m).ToString("C", System.Globalization.CultureInfo.CurrentCulture);
 }

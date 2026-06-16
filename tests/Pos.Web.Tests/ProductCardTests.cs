@@ -28,7 +28,7 @@ public class ProductCardTests : BunitContext, IAsyncLifetime
     public void OutOfStockProduct_RendersDisabledAndDoesNotRaiseAdd()
     {
         var raised = 0;
-        var product = new ProductModel(1, "Brownie", "Edible", 65, 0, "brownie", IsOutOfStock: true);
+        var product = new ProductModel(1, "Brownie", "Edible", 65, 0, "brownie"); // stock 0 => out of stock
         var cut = Render<ProductCard>(p => p
             .Add(c => c.Product, product)
             .Add(c => c.OnAddToCart, _ => raised++));
@@ -42,7 +42,7 @@ public class ProductCardTests : BunitContext, IAsyncLifetime
     public void InStockProduct_RaisesAddOnClick()
     {
         var raised = 0;
-        var product = new ProductModel(1, "Brownie", "Edible", 65, 5, "brownie", IsOutOfStock: false);
+        var product = new ProductModel(1, "Brownie", "Edible", 65, 5, "brownie"); // stock 5 => in stock
         var cut = Render<ProductCard>(p => p
             .Add(c => c.Product, product)
             .Add(c => c.OnAddToCart, _ => raised++));

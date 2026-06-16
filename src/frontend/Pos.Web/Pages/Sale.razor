@@ -24,7 +24,7 @@ else
     </MudGrid>
 
     <MudPaper Class="pa-4 mt-4 d-flex align-center" Elevation="3" Style="position:sticky; bottom:0;">
-        <MudText Typo="Typo.h5">@L["Total"]: @ProductCard.FormatEuro(TotalCents)</MudText>
+        <MudText Typo="Typo.h5">@L["Total"]: @Money.FormatEuro(TotalCents)</MudText>
         <MudSpacer />
         <MudButton OnClick="Reset" Disabled="Cart.IsEmpty" StartIcon="@Icons.Material.Filled.Clear" Class="mr-2">@L["Reset"]</MudButton>
         <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="OpenCheckout" Disabled="Cart.IsEmpty"
@@ -59,7 +59,7 @@ else
     {
         if (_products is null) return;
         _products = _products
-            .Select(p => p.Id == productId ? p with { StockQuantity = newQuantity, IsOutOfStock = newQuantity <= 0 } : p)
+            .Select(p => p.Id == productId ? p with { StockQuantity = newQuantity } : p)
             .ToList();
         InvokeAsync(StateHasChanged);
     }

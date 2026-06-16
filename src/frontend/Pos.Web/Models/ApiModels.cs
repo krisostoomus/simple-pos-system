@@ -1,8 +1,19 @@
 namespace Pos.Web.Models;
 
+/// <summary>Product category values as serialized by the API (mirrors the domain enum names).</summary>
+public static class ProductCategories
+{
+    public const string Edible = "Edible";
+    public const string SecondHand = "SecondHand";
+}
+
 public sealed record ProductModel(
-    int Id, string Name, string Category, int PriceCents,
-    int StockQuantity, string ImageKey, bool IsOutOfStock);
+    int Id, string Name, string Category, int PriceCents, int StockQuantity, string ImageKey)
+{
+    /// <summary>Derived from stock — no need to keep a separate flag in sync. (The API also sends an
+    /// <c>isOutOfStock</c> field, which is simply ignored on deserialization.)</summary>
+    public bool IsOutOfStock => StockQuantity <= 0;
+}
 
 public sealed record ChangePieceModel(int DenominationCents, int Count);
 

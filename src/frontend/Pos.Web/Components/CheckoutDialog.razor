@@ -2,12 +2,12 @@
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h6">@L["Total"]: @ProductCard.FormatEuro(TotalCents)</MudText>
+        <MudText Typo="Typo.h6">@L["Total"]: @Money.FormatEuro(TotalCents)</MudText>
         <MudNumericField @bind-Value="_cashEuro" Label="@L["CashReceived"]" Min="0" Step="0.05M" Format="F2" Immediate="true" />
         @if (_result is not null)
         {
             <MudAlert Severity="Severity.Success" Class="mt-3">
-                @L["Change"]: @ProductCard.FormatEuro(_result.ChangeCents)
+                @L["Change"]: @Money.FormatEuro(_result.ChangeCents)
                 <MudText Typo="Typo.caption">@ChangeBreakdown(_result)</MudText>
             </MudAlert>
         }
@@ -83,5 +83,5 @@
     private void Done() => Dialog.Close(DialogResult.Ok(true));
 
     private static string ChangeBreakdown(CheckoutResultModel r)
-        => string.Join(", ", r.Change.Select(c => $"{c.Count}x {ProductCard.FormatEuro(c.DenominationCents)}"));
+        => string.Join(", ", r.Change.Select(c => $"{c.Count}x {Money.FormatEuro(c.DenominationCents)}"));
 }

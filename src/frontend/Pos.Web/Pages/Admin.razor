@@ -34,7 +34,7 @@ else if (_products is not null)
     private IReadOnlyList<ProductModel>? _products;
     private readonly Dictionary<int, int> _edits = new();
     private IEnumerable<ProductModel> SecondHandProducts =>
-        _products?.Where(p => p.Category == "SecondHand") ?? Enumerable.Empty<ProductModel>();
+        _products?.Where(p => p.Category == ProductCategories.SecondHand) ?? Enumerable.Empty<ProductModel>();
 
     protected override async Task OnInitializedAsync()
     {
