@@ -85,6 +85,9 @@
   <data name="OutOfStock" xml:space="preserve">
     <value>Otsas</value>
   </data>
+  <data name="StockLeft" xml:space="preserve">
+    <value>{0} alles</value>
+  </data>
   <data name="Admin" xml:space="preserve">
     <value>Haldus</value>
   </data>

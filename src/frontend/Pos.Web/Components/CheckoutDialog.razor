@@ -46,19 +46,38 @@
         var body = Body with { CashPaidCents = (int)Math.Round(_cashEuro * 100) };
         try
         {
-            _result = await Api.CheckoutAsync(body);
-        }
-        catch (ApiException ex)
-        {
-            _error = ex.ErrorCode switch
+            for (var attempt = 1; ; attempt++)
             {
-                "out_of_stock" => L["ErrorOutOfStock"],
-                "insufficient_payment" => L["ErrorInsufficientPayment"],
-                _ => L["ErrorGeneric"],
-            };
+                try
+                {
+                    _result = await Api.CheckoutAsync(body);
+                    return;
+                }
+                catch (ApiException ex) when (ex.ErrorCode == "concurrency_conflict" && attempt < 2)
+                {
+                    // Transient conflict (two sellers raced) — retry once before surfacing an error.
+                }
+                catch (ApiException ex)
+                {
+                    _error = MapError(ex.ErrorCode);
+                    return;
+                }
+                catch
+                {
+                    _error = L["ErrorGeneric"];
+                    return;
+                }
+            }
         }
         finally { _busy = false; }
     }
+
+    private string MapError(string errorCode) => errorCode switch
+    {
+        "out_of_stock" => L["ErrorOutOfStock"],
+        "insufficient_payment" => L["ErrorInsufficientPayment"],
+        _ => L["ErrorGeneric"],
+    };
 
     private void Cancel() => Dialog.Cancel();
     private void Done() => Dialog.Close(DialogResult.Ok(true));

@@ -11,7 +11,7 @@
         }
         else
         {
-            <MudText Typo="Typo.caption">@Product.StockQuantity left</MudText>
+            <MudText Typo="Typo.caption">@string.Format(L["StockLeft"], Product.StockQuantity)</MudText>
         }
         @if (Quantity > 0)
         {
