@@ -1,0 +1,38 @@
+@inject IStringLocalizer<UiStrings> L
+
+<MudCard Class="@CardClass" Style="cursor:pointer; user-select:none;" @onclick="OnAdd">
+    <MudCardMedia Image="@ImageUrl" Height="120" />
+    <MudCardContent>
+        <MudText Typo="Typo.subtitle1">@Product.Name</MudText>
+        <MudText Typo="Typo.body2">@FormatEuro(Product.PriceCents)</MudText>
+        @if (Product.IsOutOfStock)
+        {
+            <MudChip T="string" Color="Color.Default" Size="Size.Small">@L["OutOfStock"]</MudChip>
+        }
+        else
+        {
+            <MudText Typo="Typo.caption">@Product.StockQuantity left</MudText>
+        }
+        @if (Quantity > 0)
+        {
+            <MudBadge Content="Quantity" Color="Color.Primary" Overlap="true" Class="ml-2" />
+        }
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter, EditorRequired] public ProductModel Product { get; set; } = default!;
+    [Parameter] public int Quantity { get; set; }
+    [Parameter] public EventCallback<int> OnAddToCart { get; set; }
+
+    private string CardClass => Product.IsOutOfStock ? "ma-2 mud-elevation-1 pos-disabled" : "ma-2 mud-elevation-2";
+    private string ImageUrl => $"images/{Product.ImageKey}.png";
+
+    private async Task OnAdd()
+    {
+        if (Product.IsOutOfStock) return;
+        await OnAddToCart.InvokeAsync(Product.Id);
+    }
+
+    public static string FormatEuro(int cents) => (cents / 100m).ToString("C", System.Globalization.CultureInfo.CurrentCulture);
+}

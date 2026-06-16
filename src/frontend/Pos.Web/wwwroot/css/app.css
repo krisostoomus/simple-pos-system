@@ -2,6 +2,8 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+.pos-disabled { filter: grayscale(100%); opacity: 0.5; pointer-events: none; }
+
 h1:focus {
     outline: none;
 }
