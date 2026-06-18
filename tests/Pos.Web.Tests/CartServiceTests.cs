@@ -27,6 +27,31 @@ public class CartServiceTests
     }
 
     [Fact]
+    public void RemoveLine_RemovesEntireLineRegardlessOfQuantity()
+    {
+        var cart = new CartService();
+        cart.Add(1); cart.Add(1); cart.Add(1); // qty 3
+        cart.Add(2);
+
+        cart.RemoveLine(1);
+
+        Assert.Equal(0, cart.QuantityOf(1));
+        Assert.Equal(1, cart.QuantityOf(2)); // other lines untouched
+        Assert.Equal(1, cart.Count);
+    }
+
+    [Fact]
+    public void RemoveLine_IsNoOpForAbsentProduct()
+    {
+        var cart = new CartService();
+        cart.Add(1);
+
+        cart.RemoveLine(99); // not in cart
+
+        Assert.Equal(1, cart.QuantityOf(1));
+    }
+
+    [Fact]
     public void Reset_ClearsCart()
     {
         var cart = new CartService();

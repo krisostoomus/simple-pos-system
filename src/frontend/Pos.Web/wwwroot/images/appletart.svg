@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Apple tart">
+  <ellipse cx="60" cy="98" rx="38" ry="7" fill="#3a2a1a" opacity=".12"/>
+  <circle cx="60" cy="62" r="34" fill="#E0A23A"/>
+  <circle cx="60" cy="62" r="34" fill="none" stroke="#C4862A" stroke-width="3" stroke-dasharray="7 4.5"/>
+  <circle cx="60" cy="62" r="26" fill="#EBC571"/>
+  <g fill="#EFAE63" stroke="#D9883F" stroke-width="1">
+    <path d="M60 40 C66 47 64 54 60 58 C56 54 54 47 60 40Z" transform="rotate(0 60 62)"/>
+    <path d="M60 40 C66 47 64 54 60 58 C56 54 54 47 60 40Z" transform="rotate(45 60 62)"/>
+    <path d="M60 40 C66 47 64 54 60 58 C56 54 54 47 60 40Z" transform="rotate(90 60 62)"/>
+    <path d="M60 40 C66 47 64 54 60 58 C56 54 54 47 60 40Z" transform="rotate(135 60 62)"/>
+    <path d="M60 40 C66 47 64 54 60 58 C56 54 54 47 60 40Z" transform="rotate(180 60 62)"/>
+    <path d="M60 40 C66 47 64 54 60 58 C56 54 54 47 60 40Z" transform="rotate(225 60 62)"/>
+    <path d="M60 40 C66 47 64 54 60 58 C56 54 54 47 60 40Z" transform="rotate(270 60 62)"/>
+    <path d="M60 40 C66 47 64 54 60 58 C56 54 54 47 60 40Z" transform="rotate(315 60 62)"/>
+  </g>
+  <circle cx="60" cy="62" r="5" fill="#D9883F"/>
+</svg>

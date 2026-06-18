@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Jacket">
+  <ellipse cx="60" cy="102" rx="34" ry="6" fill="#3a2a1a" opacity=".12"/>
+  <path d="M40 28 L26 40 l7 17 8 -4 v45 h38 v-45 l8 4 7 -17 -14 -12 -16 0 z" fill="#8a5a3c"/>
+  <path d="M40 28 L56 30 L46 58 Z" fill="#9a6b48"/>
+  <path d="M80 28 L64 30 L74 58 Z" fill="#9a6b48"/>
+  <path d="M56 30 l4 26 4 -26 z" fill="#704428"/>
+  <line x1="60" y1="56" x2="60" y2="94" stroke="#5a3620" stroke-width="2" stroke-dasharray="2.5 3"/>
+  <circle cx="49" cy="74" r="2.3" fill="#5a3620"/>
+  <circle cx="71" cy="74" r="2.3" fill="#5a3620"/>
+</svg>

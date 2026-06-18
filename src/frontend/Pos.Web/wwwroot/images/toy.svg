@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Toy">
+  <ellipse cx="60" cy="104" rx="26" ry="5" fill="#3a2a1a" opacity=".12"/>
+  <circle cx="44" cy="38" r="9" fill="#B07A47"/>
+  <circle cx="76" cy="38" r="9" fill="#B07A47"/>
+  <circle cx="44" cy="38" r="4.5" fill="#8a5a32"/>
+  <circle cx="76" cy="38" r="4.5" fill="#8a5a32"/>
+  <ellipse cx="60" cy="80" rx="20" ry="18" fill="#C68C52"/>
+  <ellipse cx="60" cy="82" rx="11" ry="10" fill="#E8C99B"/>
+  <circle cx="40" cy="73" r="8" fill="#B07A47"/>
+  <circle cx="80" cy="73" r="8" fill="#B07A47"/>
+  <circle cx="48" cy="96" r="8" fill="#B07A47"/>
+  <circle cx="72" cy="96" r="8" fill="#B07A47"/>
+  <circle cx="60" cy="46" r="18" fill="#C68C52"/>
+  <ellipse cx="60" cy="52" rx="9" ry="7" fill="#E8C99B"/>
+  <circle cx="60" cy="49" r="2.8" fill="#5a3620"/>
+  <circle cx="53" cy="43" r="2.4" fill="#3a2418"/>
+  <circle cx="67" cy="43" r="2.4" fill="#3a2418"/>
+</svg>

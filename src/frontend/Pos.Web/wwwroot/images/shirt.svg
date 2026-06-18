@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Shirt">
+  <ellipse cx="60" cy="100" rx="34" ry="6" fill="#3a2a1a" opacity=".12"/>
+  <path d="M46 32 L26 46 l9 16 11 -7 v40 h28 v-40 l11 7 9 -16 -20 -14 -7 0 a11 7 0 0 1 -22 0 z" fill="#5B8AA6"/>
+  <path d="M49 32 a11 8 0 0 0 22 0" fill="none" stroke="#3F6E89" stroke-width="2.4"/>
+  <path d="M46 32 L36 55" stroke="#4d7991" stroke-width="1.6" opacity=".6"/>
+  <path d="M74 32 L84 55" stroke="#4d7991" stroke-width="1.6" opacity=".6"/>
+</svg>

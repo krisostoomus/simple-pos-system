@@ -88,6 +88,9 @@
   <data name="StockLeft" xml:space="preserve">
     <value>{0} left</value>
   </data>
+  <data name="InCart" xml:space="preserve">
+    <value>In cart: {0}</value>
+  </data>
   <data name="Admin" xml:space="preserve">
     <value>Admin</value>
   </data>
@@ -135,5 +138,41 @@
   </data>
   <data name="InvalidCredentials" xml:space="preserve">
     <value>Invalid username or password.</value>
+  </data>
+  <data name="Basket" xml:space="preserve">
+    <value>Basket</value>
+  </data>
+  <data name="ItemsCount" xml:space="preserve">
+    <value>{0} items</value>
+  </data>
+  <data name="AddOne" xml:space="preserve">
+    <value>Add one {0}</value>
+  </data>
+  <data name="RemoveOne" xml:space="preserve">
+    <value>Remove one {0}</value>
+  </data>
+  <data name="RemoveLine" xml:space="preserve">
+    <value>Remove all {0}</value>
+  </data>
+  <data name="SaleComplete" xml:space="preserve">
+    <value>Sale completed · change {0}</value>
+  </data>
+  <data name="DemoCredentialsHint" xml:space="preserve">
+    <value>Demo: staff / staff-password (prefilled for testing)</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Orders</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="Sold" xml:space="preserve">
+    <value>Sold</value>
+  </data>
+  <data name="Revenue" xml:space="preserve">
+    <value>Revenue</value>
+  </data>
+  <data name="NoSales" xml:space="preserve">
+    <value>No sales yet</value>
   </data>
 </root>

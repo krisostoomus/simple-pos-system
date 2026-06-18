@@ -4,32 +4,41 @@
 @inject CartService Cart
 @inject StockHubClient Hub
 @inject IDialogService Dialogs
+@inject ISnackbar Snackbar
 @inject IStringLocalizer<UiStrings> L
 
-<MudText Typo="Typo.h4" Class="mb-4">@L["AppTitle"]</MudText>
+<header class="pos-page-head">
+    <h1 class="pos-title">@L["AppTitle"]</h1>
+</header>
 
 @if (_products is null)
 {
-    <MudProgressCircular Indeterminate="true" />
+    <div class="pos-loading"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /></div>
 }
 else
 {
     <MudGrid>
+        @{ var _i = 0; }
         @foreach (var p in _products)
         {
             <MudItem xs="6" sm="4" md="3">
-                <ProductCard Product="p" Quantity="Cart.QuantityOf(p.Id)" OnAddToCart="Add" />
+                <ProductCard Product="p" Quantity="Cart.QuantityOf(p.Id)" Index="_i++" OnAddToCart="Add" />
             </MudItem>
         }
     </MudGrid>
 
-    <MudPaper Class="pa-4 mt-4 d-flex align-center" Elevation="3" Style="position:sticky; bottom:0;">
-        <MudText Typo="Typo.h5">@L["Total"]: @Money.FormatEuro(TotalCents)</MudText>
+    <BasketPanel Lines="BasketLines" OnAdd="Add" OnRemove="RemoveItem" OnRemoveLine="RemoveLine" />
+
+    <div class="pos-checkout-bar">
+        <div class="pos-total">
+            <span class="pos-total-label">@L["Total"]</span>
+            <span class="pos-total-amount">@Money.FormatEuro(TotalCents)</span>
+        </div>
         <MudSpacer />
         <MudButton OnClick="Reset" Disabled="Cart.IsEmpty" StartIcon="@Icons.Material.Filled.Clear" Class="mr-2">@L["Reset"]</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="OpenCheckout" Disabled="Cart.IsEmpty"
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" OnClick="OpenCheckout" Disabled="Cart.IsEmpty"
                    StartIcon="@Icons.Material.Filled.ShoppingCartCheckout">@L["Checkout"]</MudButton>
-    </MudPaper>
+    </div>
 }
 
 @code {
@@ -37,6 +46,16 @@ else
     private Dictionary<int, int> _priceById = new();
 
     private int TotalCents => Cart.TotalCents(_priceById);
+
+    // Lines for the basket panel, in product-grid order. Joins the cart's quantities with the loaded
+    // products so each line carries name, unit price and current stock (for the +/− stock cap).
+    private IReadOnlyList<BasketLine> BasketLines =>
+        _products is null
+            ? []
+            : _products
+                .Where(p => Cart.QuantityOf(p.Id) > 0)
+                .Select(p => new BasketLine(p, Cart.QuantityOf(p.Id)))
+                .ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -53,6 +72,8 @@ else
     }
 
     private void Add(int productId) => Cart.Add(productId);
+    private void RemoveItem(int productId) => Cart.Remove(productId);
+    private void RemoveLine(int productId) => Cart.RemoveLine(productId);
     private void Reset() => Cart.Reset();
 
     private void OnStockChanged(int productId, int newQuantity)
@@ -72,6 +93,9 @@ else
         var result = await dialog.Result;
         if (result is not null && !result.Canceled)
         {
+            if (result.Data is CheckoutResultModel completed)
+                Snackbar.Add(string.Format(L["SaleComplete"], Money.FormatEuro(completed.ChangeCents)), Severity.Success);
+
             Cart.Reset();
             await Load(); // refresh stock after a completed sale
         }

@@ -16,13 +16,13 @@ public sealed class PosSteps(ScenarioContext context)
         // Wait for the app bar title to appear (Blazor WASM rendered)
         await Page.GetByText("Charity Bake Sale").First.WaitForAsync(new() { Timeout = 90_000 });
         // Wait for product cards to load (API call complete)
-        await Page.Locator(".mud-card").First.WaitForAsync(new() { Timeout = 30_000 });
+        await Page.Locator(".pos-card").First.WaitForAsync(new() { Timeout = 30_000 });
     }
 
     [When(@"I click the ""(.*)"" product (\d+) times")]
     public async Task WhenIClickProduct(string name, int times)
     {
-        var card = Page.Locator(".mud-card", new() { HasText = name }).First;
+        var card = Page.Locator(".pos-card", new() { HasText = name }).First;
         for (var i = 0; i < times; i++) await card.ClickAsync();
     }
 
@@ -48,7 +48,7 @@ public sealed class PosSteps(ScenarioContext context)
     [Then(@"the ""(.*)"" product is grayed out")]
     public async Task ThenGrayedOut(string name)
     {
-        var card = Page.Locator(".pos-disabled", new() { HasText = name }).First;
+        var card = Page.Locator(".pos-card--disabled", new() { HasText = name }).First;
         await card.WaitForAsync(new() { Timeout = 30_000 });
     }
 

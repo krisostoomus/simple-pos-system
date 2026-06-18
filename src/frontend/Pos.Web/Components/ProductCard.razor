@@ -1,36 +1,71 @@
 @inject IStringLocalizer<UiStrings> L
 
-<MudCard Class="@CardClass" Style="cursor:pointer; user-select:none;" @onclick="OnAdd">
-    <MudCardMedia Image="@ImageUrl" Height="120" />
-    <MudCardContent>
-        <MudText Typo="Typo.subtitle1">@Product.Name</MudText>
-        <MudText Typo="Typo.body2">@Money.FormatEuro(Product.PriceCents)</MudText>
+<div class="@CardClass" style="--i:@Index" @onclick="OnAdd" role="button" tabindex="0" aria-disabled="@(!CanAdd)">
+    <div class="pos-thumb">
+        <img class="pos-img" src="@ImageUrl" alt="@Product.Name" draggable="false" loading="lazy"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <span class="pos-emoji" style="display:none">@Emoji</span>
         @if (Product.IsOutOfStock)
         {
-            <MudChip T="string" Color="Color.Default" Size="Size.Small">@L["OutOfStock"]</MudChip>
+            <span class="pos-soldout">@L["OutOfStock"]</span>
         }
-        else
+        else if (Quantity > 0)
         {
-            <MudText Typo="Typo.caption">@string.Format(L["StockLeft"], Product.StockQuantity)</MudText>
+            <span class="pos-cart-badge" aria-label="@string.Format(L["InCart"], Quantity)">@Quantity</span>
         }
-        @if (Quantity > 0)
-        {
-            <MudBadge Content="Quantity" Color="Color.Primary" Overlap="true" Class="ml-2" />
-        }
-    </MudCardContent>
-</MudCard>
+    </div>
+    <div class="pos-body">
+        <div class="pos-name">@Product.Name</div>
+        <div class="pos-meta">
+            <span class="pos-price">@Money.FormatEuro(Product.PriceCents)</span>
+            @if (!Product.IsOutOfStock)
+            {
+                <span class="pos-stock">@string.Format(L["StockLeft"], Remaining)</span>
+            }
+        </div>
+    </div>
+</div>
 
 @code {
     [Parameter, EditorRequired] public ProductModel Product { get; set; } = default!;
     [Parameter] public int Quantity { get; set; }
+    [Parameter] public int Index { get; set; }
     [Parameter] public EventCallback<int> OnAddToCart { get; set; }
 
-    private string CardClass => Product.IsOutOfStock ? "ma-2 mud-elevation-1 pos-disabled" : "ma-2 mud-elevation-2";
-    private string ImageUrl => $"images/{Product.ImageKey}.png";
+    // Quantity = units already in the cart; Remaining is what's still addable.
+    private int Remaining => Math.Max(0, Product.StockQuantity - Quantity);
+    private bool CanAdd => !Product.IsOutOfStock && Remaining > 0;
+    private string CardClass
+    {
+        get
+        {
+            var cls = "pos-card";
+            if (Quantity > 0) cls += " pos-card--active";
+            if (!CanAdd) cls += " pos-card--disabled";
+            return cls;
+        }
+    }
+
+    private string ImageUrl => $"images/{Product.ImageKey}.svg";
+
+    // Emoji is the graceful fallback when an SVG is missing for an ImageKey.
+    private string Emoji => Product.ImageKey switch
+    {
+        "brownie" => "🍫",
+        "muffin" => "🧁",
+        "cakepop" => "🍭",
+        "appletart" => "🥧",
+        "water" => "💧",
+        "shirt" => "👕",
+        "pants" => "👖",
+        "jacket" => "🧥",
+        "toy" => "🧸",
+        _ => "🛍️",
+    };
 
     private async Task OnAdd()
     {
-        if (Product.IsOutOfStock) return;
+        if (!CanAdd) return;
         await OnAddToCart.InvokeAsync(Product.Id);
     }
 }

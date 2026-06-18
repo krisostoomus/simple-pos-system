@@ -5,6 +5,7 @@
     <DialogContent>
         <MudTextField @bind-Value="_username" Label="@L["Username"]" />
         <MudTextField @bind-Value="_password" Label="@L["Password"]" InputType="InputType.Password" />
+        <MudText Typo="Typo.caption" Class="mt-2 d-block" Style="color: var(--ink-soft)">@L["DemoCredentialsHint"]</MudText>
         @if (_error is not null) { <MudAlert Severity="Severity.Error" Class="mt-2">@_error</MudAlert> }
     </DialogContent>
     <DialogActions>
@@ -15,8 +16,9 @@
 
 @code {
     [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
-    private string _username = "";
-    private string _password = "";
+    // Prefilled with the demo staff credentials so testers can log in with one click.
+    private string _username = "staff";
+    private string _password = "staff-password";
     private string? _error;
     private bool _busy;
 

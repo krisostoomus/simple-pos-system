@@ -88,6 +88,9 @@
   <data name="StockLeft" xml:space="preserve">
     <value>{0} alles</value>
   </data>
+  <data name="InCart" xml:space="preserve">
+    <value>Korvis: {0}</value>
+  </data>
   <data name="Admin" xml:space="preserve">
     <value>Haldus</value>
   </data>
@@ -135,5 +138,41 @@
   </data>
   <data name="InvalidCredentials" xml:space="preserve">
     <value>Vale kasutajanimi või parool.</value>
+  </data>
+  <data name="Basket" xml:space="preserve">
+    <value>Ostukorv</value>
+  </data>
+  <data name="ItemsCount" xml:space="preserve">
+    <value>{0} toodet</value>
+  </data>
+  <data name="AddOne" xml:space="preserve">
+    <value>Lisa üks {0}</value>
+  </data>
+  <data name="RemoveOne" xml:space="preserve">
+    <value>Eemalda üks {0}</value>
+  </data>
+  <data name="RemoveLine" xml:space="preserve">
+    <value>Eemalda kõik {0}</value>
+  </data>
+  <data name="SaleComplete" xml:space="preserve">
+    <value>Müük tehtud · tagasi {0}</value>
+  </data>
+  <data name="DemoCredentialsHint" xml:space="preserve">
+    <value>Demo: staff / staff-password (testimiseks eeltäidetud)</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Tellimused</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Toode</value>
+  </data>
+  <data name="Sold" xml:space="preserve">
+    <value>Müüdud</value>
+  </data>
+  <data name="Revenue" xml:space="preserve">
+    <value>Tulu</value>
+  </data>
+  <data name="NoSales" xml:space="preserve">
+    <value>Müüke veel pole</value>
   </data>
 </root>

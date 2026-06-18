@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Muffin">
+  <ellipse cx="60" cy="102" rx="30" ry="6" fill="#3a2a1a" opacity=".12"/>
+  <path d="M40 70 l5 28 h30 l5 -28 z" fill="#E0A23A"/>
+  <path d="M49 70 l2.5 28 M60 70 v28 M71 70 l-2.5 28" stroke="#C4862A" stroke-width="2" opacity=".55"/>
+  <path d="M36 72 q-5 -36 24 -36 29 0 24 36 z" fill="#9a6b3c"/>
+  <path d="M41 70 q3 -12 19 -12 16 0 19 12z" fill="#ad7c4d" opacity=".6"/>
+  <circle cx="52" cy="56" r="3.1" fill="#4a2c19"/>
+  <circle cx="67" cy="51" r="3.1" fill="#4a2c19"/>
+  <circle cx="60" cy="63" r="2.7" fill="#4a2c19"/>
+  <circle cx="71" cy="61" r="2.5" fill="#4a2c19"/>
+  <circle cx="46" cy="63" r="2.4" fill="#4a2c19"/>
+</svg>

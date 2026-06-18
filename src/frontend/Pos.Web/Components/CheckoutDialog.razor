@@ -3,7 +3,8 @@
 <MudDialog>
     <DialogContent>
         <MudText Typo="Typo.h6">@L["Total"]: @Money.FormatEuro(TotalCents)</MudText>
-        <MudNumericField @bind-Value="_cashEuro" Label="@L["CashReceived"]" Min="0" Step="0.05M" Format="F2" Immediate="true" />
+        <MudNumericField @ref="_cashField" @bind-Value="_cashEuro" Label="@L["CashReceived"]" Min="0"
+                         Step="0.05M" Format="F2" Immediate="true" OnKeyDown="OnCashKeyDown" />
         @if (_result is not null)
         {
             <MudAlert Severity="Severity.Success" Class="mt-3">
@@ -35,10 +36,24 @@
     [Parameter] public CheckoutBody Body { get; set; } = default!;
     [Inject] private PosApiClient Api { get; set; } = default!;
 
+    private MudNumericField<decimal> _cashField = default!;
     private decimal _cashEuro;
     private bool _busy;
     private string? _error;
     private CheckoutResultModel? _result;
+
+    // Put the cursor straight in the cash field so the seller can just type the amount.
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender) await _cashField.FocusAsync();
+    }
+
+    // Enter pays (while the payment is still pending), matching the cashier's keypad muscle memory.
+    private async Task OnCashKeyDown(KeyboardEventArgs e)
+    {
+        if ((e.Key is "Enter" or "NumpadEnter") && !_busy && _result is null)
+            await Pay();
+    }
 
     private async Task Pay()
     {
@@ -80,7 +95,7 @@
     };
 
     private void Cancel() => Dialog.Cancel();
-    private void Done() => Dialog.Close(DialogResult.Ok(true));
+    private void Done() => Dialog.Close(DialogResult.Ok(_result));
 
     private static string ChangeBreakdown(CheckoutResultModel r)
         => string.Join(", ", r.Change.Select(c => $"{c.Count}x {Money.FormatEuro(c.DenominationCents)}"));

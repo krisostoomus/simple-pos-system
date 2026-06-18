@@ -5,7 +5,13 @@
 @inject IDialogService Dialogs
 @inject IStringLocalizer<UiStrings> L
 
-<MudText Typo="Typo.h4" Class="mb-4">@L["Admin"]</MudText>
+<div class="pos-admin-head">
+    <h1 class="pos-title">@L["Admin"]</h1>
+    @if (Auth.IsStaff)
+    {
+        <MudButton OnClick="Logout" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Logout">@L["Logout"]</MudButton>
+    }
+</div>
 
 @if (!Auth.IsStaff)
 {
@@ -13,7 +19,47 @@
 }
 else if (_products is not null)
 {
-    <MudTable Items="SecondHandProducts" Hover="true">
+    <section class="pos-report">
+        <div class="pos-metrics">
+            <div class="pos-metric">
+                <span class="pos-metric-label">@L["FundsRaised"]</span>
+                <span class="pos-metric-value pos-metric-value--accent">@Money.FormatEuro(_report?.TotalFundsCents ?? 0)</span>
+            </div>
+            <div class="pos-metric">
+                <span class="pos-metric-label">@L["Orders"]</span>
+                <span class="pos-metric-value">@(_report?.OrderCount ?? 0)</span>
+            </div>
+        </div>
+
+        @if (_report is { Items.Count: > 0 })
+        {
+            <table class="pos-report-table">
+                <thead>
+                    <tr>
+                        <th>@L["Product"]</th>
+                        <th class="pos-num">@L["Sold"]</th>
+                        <th class="pos-num">@L["Revenue"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in _report.Items)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td class="pos-num">@item.QuantitySold</td>
+                            <td class="pos-num">@Money.FormatEuro(item.RevenueCents)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="pos-report-empty">@L["NoSales"]</p>
+        }
+    </section>
+
+    <MudTable Items="SecondHandProducts" Hover="true" Class="mt-6">
         <HeaderContent>
             <MudTh>@L["SecondHand"]</MudTh><MudTh>@L["Quantity"]</MudTh><MudTh></MudTh>
         </HeaderContent>
@@ -32,6 +78,7 @@ else if (_products is not null)
 
 @code {
     private IReadOnlyList<ProductModel>? _products;
+    private ReportSummaryModel? _report;
     private readonly Dictionary<int, int> _edits = new();
     private IEnumerable<ProductModel> SecondHandProducts =>
         _products?.Where(p => p.Category == ProductCategories.SecondHand) ?? Enumerable.Empty<ProductModel>();
@@ -49,8 +96,11 @@ else if (_products is not null)
 
     private async Task Load()
     {
+        if (!Auth.IsStaff) { _products = null; _report = null; return; }
         _products = await Api.GetProductsAsync();
         foreach (var p in _products) _edits[p.Id] = p.StockQuantity;
+        // Reporting is a read-only extra; never let it block stock management.
+        try { _report = await Api.GetReportSummaryAsync(); } catch { _report = null; }
     }
 
     private async Task ShowLogin()
@@ -59,6 +109,8 @@ else if (_products is not null)
         var result = await dialog.Result;
         if (result is not null && !result.Canceled) await Load();
     }
+
+    private void Logout() => Auth.Clear();
 
     private async Task Save(int productId)
     {

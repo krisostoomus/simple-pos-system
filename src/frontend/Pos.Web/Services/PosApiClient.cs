@@ -43,6 +43,17 @@ public sealed class PosApiClient(HttpClient http, AuthState auth, CultureService
         return true;
     }
 
+    public async Task<ReportSummaryModel> GetReportSummaryAsync(CancellationToken ct = default)
+    {
+        using var req = new HttpRequestMessage(HttpMethod.Get, "api/v1/reports/summary");
+        req.Headers.AcceptLanguage.Add(new StringWithQualityHeaderValue(culture.Current));
+        if (auth.Token is not null)
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", auth.Token);
+        using var resp = await http.SendAsync(req, ct);
+        await EnsureSuccess(resp);
+        return (await resp.Content.ReadFromJsonAsync<ReportSummaryModel>(Json, ct))!;
+    }
+
     public async Task SetStockAsync(int productId, int quantity, CancellationToken ct = default)
     {
         using var req = new HttpRequestMessage(HttpMethod.Put, $"api/v1/products/{productId}/stock")

@@ -29,6 +29,12 @@ public sealed class CartService
         Changed?.Invoke();
     }
 
+    /// <summary>Removes the whole line for a product in one go (a no-op if it is not in the cart).</summary>
+    public void RemoveLine(int productId)
+    {
+        if (_quantities.Remove(productId)) Changed?.Invoke();
+    }
+
     public int TotalCents(IReadOnlyDictionary<int, int> priceByProductId)
         => _quantities.Sum(kv => priceByProductId.GetValueOrDefault(kv.Key) * kv.Value);
 

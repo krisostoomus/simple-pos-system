@@ -1,0 +1,61 @@
+@inject IStringLocalizer<UiStrings> L
+
+@if (Lines.Count > 0)
+{
+    <div class="pos-basket @(_expanded ? "pos-basket--open" : "")">
+        <button type="button" class="pos-basket-handle" @onclick="Toggle"
+                aria-expanded="@_expanded" aria-label="@L["Basket"]">
+            <span class="pos-basket-handle-label">
+                <span class="pos-basket-cart" aria-hidden="true">🛒</span>
+                @string.Format(L["ItemsCount"], Count)
+            </span>
+            <span class="pos-basket-chevron" aria-hidden="true">@(_expanded ? "⌄" : "⌃")</span>
+        </button>
+
+        <div class="pos-basket-sheet">
+            @foreach (var line in Lines)
+            {
+                <div class="pos-basket-line" @key="line.Product.Id">
+                    <div class="pos-basket-thumb">
+                        <img class="pos-basket-img" src="@($"images/{line.Product.ImageKey}.svg")"
+                             alt="" draggable="false" loading="lazy"
+                             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                        <span class="pos-basket-emoji" style="display:none" aria-hidden="true">🛍️</span>
+                    </div>
+
+                    <div class="pos-basket-info">
+                        <div class="pos-basket-name">@line.Product.Name</div>
+                        <div class="pos-basket-unit">@Money.FormatEuro(line.Product.PriceCents)</div>
+                    </div>
+
+                    <div class="pos-basket-stepper">
+                        <button type="button" class="pos-basket-dec" @onclick="() => OnRemove.InvokeAsync(line.Product.Id)"
+                                aria-label="@string.Format(L["RemoveOne"], line.Product.Name)">−</button>
+                        <span class="pos-basket-qty" aria-live="polite">@line.Quantity</span>
+                        <button type="button" class="pos-basket-inc" @onclick="() => OnAdd.InvokeAsync(line.Product.Id)"
+                                disabled="@line.AtStockCap"
+                                aria-label="@string.Format(L["AddOne"], line.Product.Name)">+</button>
+                    </div>
+
+                    <div class="pos-basket-linetotal">@Money.FormatEuro(line.LineTotalCents)</div>
+
+                    <button type="button" class="pos-basket-remove" @onclick="() => OnRemoveLine.InvokeAsync(line.Product.Id)"
+                            aria-label="@string.Format(L["RemoveLine"], line.Product.Name)">✕</button>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<BasketLine> Lines { get; set; } = [];
+    [Parameter] public EventCallback<int> OnAdd { get; set; }
+    [Parameter] public EventCallback<int> OnRemove { get; set; }
+    [Parameter] public EventCallback<int> OnRemoveLine { get; set; }
+
+    private bool _expanded;
+
+    private int Count => Lines.Sum(l => l.Quantity);
+
+    private void Toggle() => _expanded = !_expanded;
+}

@@ -9,12 +9,15 @@ public sealed class CultureService(IJSRuntime js)
     public const string Key = "pos-culture";
     public static readonly string[] Supported = ["en", "et"];
 
-    public string Current { get; private set; } = "en";
+    /// <summary>Default culture when nothing is persisted — Estonian, the primary on-site language.</summary>
+    public const string Default = "et";
+
+    public string Current { get; private set; } = Default;
 
     public async Task InitializeAsync()
     {
         var stored = await js.InvokeAsync<string?>("localStorage.getItem", Key);
-        Current = Supported.Contains(stored) ? stored! : "en";
+        Current = Supported.Contains(stored) ? stored! : Default;
         Apply(Current);
     }
 

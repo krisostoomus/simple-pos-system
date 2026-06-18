@@ -17,6 +17,10 @@ public sealed class PlaywrightHooks(ScenarioContext context)
         _pw = await Playwright.CreateAsync();
         _browser = await _pw.Chromium.LaunchAsync(new() { Headless = true });
         var page = await _browser.NewPageAsync();
+        // The app defaults to Estonian; pin scenarios to English so the English-text assertions are
+        // deterministic. Only sets it when unset, so the language-switch scenario's reload keeps 'et'.
+        await page.Context.AddInitScriptAsync(
+            "if(!window.localStorage.getItem('pos-culture'))window.localStorage.setItem('pos-culture','en');");
         context.Set(page);
     }
 

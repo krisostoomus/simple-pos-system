@@ -33,8 +33,8 @@ public class ProductCardTests : BunitContext, IAsyncLifetime
             .Add(c => c.Product, product)
             .Add(c => c.OnAddToCart, _ => raised++));
 
-        Assert.Contains("pos-disabled", cut.Markup);
-        cut.Find(".mud-card").Click();
+        Assert.Contains("pos-card--disabled", cut.Markup);
+        cut.Find(".pos-card").Click();
         Assert.Equal(0, raised); // disabled card swallows the click
     }
 
@@ -47,7 +47,7 @@ public class ProductCardTests : BunitContext, IAsyncLifetime
             .Add(c => c.Product, product)
             .Add(c => c.OnAddToCart, _ => raised++));
 
-        cut.Find(".mud-card").Click();
+        cut.Find(".pos-card").Click();
         Assert.Equal(1, raised);
     }
 }

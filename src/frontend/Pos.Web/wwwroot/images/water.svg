@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Water">
+  <ellipse cx="60" cy="106" rx="20" ry="4" fill="#3a2a1a" opacity=".12"/>
+  <rect x="53" y="14" width="14" height="10" rx="2" fill="#2E7D9A"/>
+  <rect x="55" y="22" width="10" height="14" fill="#C7E7F0"/>
+  <rect x="46" y="34" width="28" height="64" rx="13" fill="#C7E7F0"/>
+  <rect x="50" y="40" width="5" height="50" rx="2.5" fill="#fff" opacity=".55"/>
+  <rect x="44" y="60" width="32" height="20" rx="3" fill="#5AA0C9"/>
+  <path d="M50 70 h20" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".8"/>
+  <circle cx="60" cy="65" r="3.2" fill="#fff" opacity=".85"/>
+</svg>

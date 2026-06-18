@@ -10,8 +10,11 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="2" Color="Color.Primary">
-        <MudText Typo="Typo.h6">@L["AppTitle"]</MudText>
+    <MudAppBar Elevation="0" Color="Color.Primary" Class="pos-appbar">
+        <a href="/" class="pos-brand" aria-label="@L["AppTitle"]">
+            <span class="pos-brand-mark">✻</span>
+            <span class="pos-brand-text">@L["AppTitle"]</span>
+        </a>
         <MudSpacer />
         <LanguageSwitcher />
         <MudButton Href="/admin" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Inventory">@L["Admin"]</MudButton>
@@ -28,9 +31,23 @@
     {
         PaletteLight = new PaletteLight
         {
-            Primary = "#2E7D32",
-            Secondary = "#66BB6A",
-            AppbarBackground = "#1B5E20",
+            Primary = "#18794E",        // the one accent — green
+            Secondary = "#115C3A",      // green, pressed
+            Tertiary = "#5E6864",       // muted slate
+            AppbarBackground = "#FFFFFF",
+            Background = "#EDF0EF",      // cool light-gray canvas
+            Surface = "#FFFFFF",
+            TextPrimary = "#161A18",    // near-black slate
+            TextSecondary = "#5E6864",
+            ActionDefault = "#5E6864",
+            DrawerBackground = "#FFFFFF",
+            LinesDefault = "#E1E6E3",
+            Divider = "#E1E6E3",
+            Error = "#C0493B",
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "10px",
         }
     };
 }
