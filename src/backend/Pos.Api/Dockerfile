@@ -11,6 +11,11 @@ COPY src/ ./src/
 RUN dotnet publish src/backend/Pos.Api/Pos.Api.csproj -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+# Npgsql loads libgssapi_krb5.so.2 (Kerberos/GSSAPI) when opening a Postgres connection; the slim
+# aspnet image no longer ships it, so install it or the API crashes on its first DB call at startup.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app ./
 ENV ASPNETCORE_URLS=http://+:8080
