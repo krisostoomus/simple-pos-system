@@ -1,17 +1,39 @@
+@using System.Globalization
 @inject IStringLocalizer<UiStrings> L
 
 <MudDialog>
     <DialogContent>
         <MudText Typo="Typo.h6">@L["Total"]: @Money.FormatEuro(TotalCents)</MudText>
-        <MudNumericField @ref="_cashField" @bind-Value="_cashEuro" Label="@L["CashReceived"]" Min="0"
-                         Step="0.05M" Format="F2" Immediate="true" OnKeyDown="OnCashKeyDown" />
-        @if (_result is not null)
+
+        @if (_result is null)
+        {
+            <div class="d-flex gap-2 flex-wrap mt-3 mb-1">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="_busy"
+                           OnClick="@(() => Tender(TotalCents))">@L["Exact"]</MudButton>
+                @foreach (var note in QuickNotes)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                               Disabled="@(_busy || note < TotalCents)"
+                               OnClick="@(() => Tender(note))">@Money.FormatEuro(note)</MudButton>
+                }
+            </div>
+
+            <MudTextField @ref="_cashField" @bind-Value="_cashText" Label="@L["CashReceived"]"
+                          InputMode="@(InputMode.@decimal)" Immediate="true" OnKeyDown="OnCashKeyDown" />
+
+            @if (ChangePreviewCents is int preview)
+            {
+                <MudText Typo="Typo.body2" Class="mt-1">@L["Change"]: @Money.FormatEuro(preview)</MudText>
+            }
+        }
+        else
         {
             <MudAlert Severity="Severity.Success" Class="mt-3">
                 @L["Change"]: @Money.FormatEuro(_result.ChangeCents)
                 <MudText Typo="Typo.caption">@ChangeBreakdown(_result)</MudText>
             </MudAlert>
         }
+
         @if (_error is not null)
         {
             <MudAlert Severity="Severity.Error" Class="mt-3">@_error</MudAlert>
@@ -21,7 +43,7 @@
         <MudButton OnClick="Cancel">@L["Cancel"]</MudButton>
         @if (_result is null)
         {
-            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Pay" Disabled="_busy">@L["Pay"]</MudButton>
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="Pay" Disabled="@(_busy || ParsedCents is null)">@L["Pay"]</MudButton>
         }
         else
         {
@@ -35,12 +57,23 @@
     [Parameter] public int TotalCents { get; set; }
     [Parameter] public CheckoutBody Body { get; set; } = default!;
     [Inject] private PosApiClient Api { get; set; } = default!;
+    [Inject] private CartService Cart { get; set; } = default!;
 
-    private MudNumericField<decimal> _cashField = default!;
-    private decimal _cashEuro;
+    // Common notes a customer hands over, in cents (€5 · €10 · €20 · €50).
+    private static readonly int[] QuickNotes = [500, 1000, 2000, 5000];
+
+    private MudTextField<string> _cashField = default!;
+    private string? _cashText;
     private bool _busy;
     private string? _error;
     private CheckoutResultModel? _result;
+
+    // The typed amount, parsed to cents (null while the field is empty or unparseable).
+    private int? ParsedCents => ParseCents(_cashText);
+
+    // Advisory change shown before paying; the server stays authoritative on checkout.
+    private int? ChangePreviewCents
+        => ParsedCents is int cents && cents >= TotalCents ? cents - TotalCents : null;
 
     // Put the cursor straight in the cash field so the seller can just type the amount.
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -48,17 +81,22 @@
         if (firstRender) await _cashField.FocusAsync();
     }
 
+    // Tap a note (or "Exact") to fill the amount; the cashier still confirms with Pay.
+    private void Tender(int cents)
+        => _cashText = (cents / 100m).ToString("0.00", CultureInfo.InvariantCulture);
+
     // Enter pays (while the payment is still pending), matching the cashier's keypad muscle memory.
     private async Task OnCashKeyDown(KeyboardEventArgs e)
     {
-        if ((e.Key is "Enter" or "NumpadEnter") && !_busy && _result is null)
+        if ((e.Key is "Enter" or "NumpadEnter") && !_busy && _result is null && ParsedCents is not null)
             await Pay();
     }
 
     private async Task Pay()
     {
+        if (ParsedCents is not int cents) return;
         _busy = true; _error = null;
-        var body = Body with { CashPaidCents = (int)Math.Round(_cashEuro * 100) };
+        var body = Body with { CashPaidCents = cents };
         try
         {
             for (var attempt = 1; ; attempt++)
@@ -66,6 +104,9 @@
                 try
                 {
                     _result = await Api.CheckoutAsync(body);
+                    // Empty the cart the moment payment succeeds — before the sale's own StockChanged
+                    // broadcast arrives, so it can't misfire out-of-stock warnings on items we just sold.
+                    Cart.Reset();
                     return;
                 }
                 catch (ApiException ex) when (ex.ErrorCode == "concurrency_conflict" && attempt < 2)
@@ -85,6 +126,16 @@
             }
         }
         finally { _busy = false; }
+    }
+
+    // Accepts "5", "5.50" or "5,50" — both decimal separators, regardless of UI culture.
+    private static int? ParseCents(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var normalized = text.Trim().Replace(" ", "").Replace(',', '.');
+        return decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.InvariantCulture, out var euro) && euro >= 0
+            ? (int)Math.Round(euro * 100)
+            : null;
     }
 
     private string MapError(string errorCode) => errorCode switch

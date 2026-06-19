@@ -73,6 +73,9 @@
   <data name="CashReceived" xml:space="preserve">
     <value>Saadud sularaha (€)</value>
   </data>
+  <data name="Exact" xml:space="preserve">
+    <value>Täpne</value>
+  </data>
   <data name="Change" xml:space="preserve">
     <value>Tagasi</value>
   </data>
@@ -174,5 +177,23 @@
   </data>
   <data name="NoSales" xml:space="preserve">
     <value>Müüke veel pole</value>
+  </data>
+  <data name="OnlyLeft" xml:space="preserve">
+    <value>Ainult {0} alles</value>
+  </data>
+  <data name="BasketStockWarning" xml:space="preserve">
+    <value>Mõne toote kogus ületab laoseisu. Korrigeeri koguseid enne maksmist.</value>
+  </data>
+  <data name="StockReduced" xml:space="preserve">
+    <value>{0}: nüüd ainult {1} alles</value>
+  </data>
+  <data name="NowSoldOut" xml:space="preserve">
+    <value>{0} on nüüd otsas</value>
+  </data>
+  <data name="SalesSummary" xml:space="preserve">
+    <value>Müügi kokkuvõte</value>
+  </data>
+  <data name="SecondHandStock" xml:space="preserve">
+    <value>Kasutatud kauba laoseis</value>
   </data>
 </root>

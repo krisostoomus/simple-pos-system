@@ -1,8 +1,11 @@
 @inherits LayoutComponentBase
+@implements IDisposable
 @using Pos.Web.Components
 @using Pos.Web.Resources
+@using Pos.Web.Services
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<UiStrings> L
+@inject AuthState Auth
 
 <MudThemeProvider Theme="@_theme" />
 <MudPopoverProvider />
@@ -18,6 +21,10 @@
         <MudSpacer />
         <LanguageSwitcher />
         <MudButton Href="/admin" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Inventory">@L["Admin"]</MudButton>
+        @if (Auth.IsStaff)
+        {
+            <MudButton OnClick="Logout" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Logout">@L["Logout"]</MudButton>
+        }
     </MudAppBar>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
@@ -31,23 +38,31 @@
     {
         PaletteLight = new PaletteLight
         {
-            Primary = "#18794E",        // the one accent — green
-            Secondary = "#115C3A",      // green, pressed
-            Tertiary = "#5E6864",       // muted slate
+            Primary = "#10B981",        // the one accent — vibrant mint
+            Secondary = "#059669",      // emerald, pressed
+            Tertiary = "#64748B",       // muted slate
             AppbarBackground = "#FFFFFF",
-            Background = "#EDF0EF",      // cool light-gray canvas
+            Background = "#F9FAFB",      // crisp off-white canvas
             Surface = "#FFFFFF",
-            TextPrimary = "#161A18",    // near-black slate
-            TextSecondary = "#5E6864",
-            ActionDefault = "#5E6864",
+            TextPrimary = "#1E293B",    // deep slate
+            TextSecondary = "#64748B",
+            ActionDefault = "#64748B",
             DrawerBackground = "#FFFFFF",
-            LinesDefault = "#E1E6E3",
-            Divider = "#E1E6E3",
-            Error = "#C0493B",
+            LinesDefault = "#E5E7EB",
+            Divider = "#E5E7EB",
+            Error = "#DC2626",
         },
         LayoutProperties = new LayoutProperties
         {
             DefaultBorderRadius = "10px",
         }
     };
+
+    protected override void OnInitialized() => Auth.Changed += OnAuthChanged;
+
+    private void OnAuthChanged() => InvokeAsync(StateHasChanged);
+
+    private void Logout() => Auth.Clear();
+
+    public void Dispose() => Auth.Changed -= OnAuthChanged;
 }

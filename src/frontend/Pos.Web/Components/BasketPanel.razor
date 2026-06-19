@@ -8,14 +8,22 @@
             <span class="pos-basket-handle-label">
                 <span class="pos-basket-cart" aria-hidden="true">🛒</span>
                 @string.Format(L["ItemsCount"], Count)
+                @if (HasStockIssues)
+                {
+                    <span class="pos-basket-alert" aria-label="@L["BasketStockWarning"]">⚠</span>
+                }
             </span>
             <span class="pos-basket-chevron" aria-hidden="true">@(_expanded ? "⌄" : "⌃")</span>
         </button>
 
         <div class="pos-basket-sheet">
+            @if (HasStockIssues)
+            {
+                <div class="pos-basket-notice" role="alert">@L["BasketStockWarning"]</div>
+            }
             @foreach (var line in Lines)
             {
-                <div class="pos-basket-line" @key="line.Product.Id">
+                <div class="pos-basket-line @(line.ExceedsStock ? "pos-basket-line--warn" : "")" @key="line.Product.Id">
                     <div class="pos-basket-thumb">
                         <img class="pos-basket-img" src="@($"images/{line.Product.ImageKey}.svg")"
                              alt="" draggable="false" loading="lazy"
@@ -26,6 +34,12 @@
                     <div class="pos-basket-info">
                         <div class="pos-basket-name">@line.Product.Name</div>
                         <div class="pos-basket-unit">@Money.FormatEuro(line.Product.PriceCents)</div>
+                        @if (line.ExceedsStock)
+                        {
+                            <div class="pos-basket-warn">
+                                @(line.IsOutOfStock ? L["OutOfStock"] : string.Format(L["OnlyLeft"], line.Available))
+                            </div>
+                        }
                     </div>
 
                     <div class="pos-basket-stepper">
@@ -56,6 +70,7 @@
     private bool _expanded;
 
     private int Count => Lines.Sum(l => l.Quantity);
+    private bool HasStockIssues => Lines.Any(l => l.ExceedsStock);
 
     private void Toggle() => _expanded = !_expanded;
 }

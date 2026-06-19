@@ -34,9 +34,13 @@ else
             <span class="pos-total-label">@L["Total"]</span>
             <span class="pos-total-amount">@Money.FormatEuro(TotalCents)</span>
         </div>
+        @if (HasStockIssues)
+        {
+            <span class="pos-checkout-warn">⚠ @L["BasketStockWarning"]</span>
+        }
         <MudSpacer />
         <MudButton OnClick="Reset" Disabled="Cart.IsEmpty" StartIcon="@Icons.Material.Filled.Clear" Class="mr-2">@L["Reset"]</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" OnClick="OpenCheckout" Disabled="Cart.IsEmpty"
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Large" OnClick="OpenCheckout" Disabled="Cart.IsEmpty || HasStockIssues"
                    StartIcon="@Icons.Material.Filled.ShoppingCartCheckout">@L["Checkout"]</MudButton>
     </div>
 }
@@ -56,6 +60,9 @@ else
                 .Where(p => Cart.QuantityOf(p.Id) > 0)
                 .Select(p => new BasketLine(p, Cart.QuantityOf(p.Id)))
                 .ToList();
+
+    // Some basket line now exceeds available stock — checkout would be rejected by the server.
+    private bool HasStockIssues => BasketLines.Any(l => l.ExceedsStock);
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,6 +86,18 @@ else
     private void OnStockChanged(int productId, int newQuantity)
     {
         if (_products is null) return;
+
+        // Warn if this product is in the basket and just dropped below the quantity the seller holds.
+        var inCart = Cart.QuantityOf(productId);
+        if (inCart > 0 && newQuantity < inCart)
+        {
+            var name = _products.FirstOrDefault(p => p.Id == productId)?.Name ?? "";
+            var message = newQuantity <= 0
+                ? string.Format(L["NowSoldOut"], name)
+                : string.Format(L["StockReduced"], name, newQuantity);
+            Snackbar.Add(message, Severity.Warning);
+        }
+
         _products = _products
             .Select(p => p.Id == productId ? p with { StockQuantity = newQuantity } : p)
             .ToList();
@@ -96,7 +115,7 @@ else
             if (result.Data is CheckoutResultModel completed)
                 Snackbar.Add(string.Format(L["SaleComplete"], Money.FormatEuro(completed.ChangeCents)), Severity.Success);
 
-            Cart.Reset();
+            // Cart was already cleared inside the dialog on successful payment; just refresh stock.
             await Load(); // refresh stock after a completed sale
         }
     }

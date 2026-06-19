@@ -7,10 +7,6 @@
 
 <div class="pos-admin-head">
     <h1 class="pos-title">@L["Admin"]</h1>
-    @if (Auth.IsStaff)
-    {
-        <MudButton OnClick="Logout" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Logout">@L["Logout"]</MudButton>
-    }
 </div>
 
 @if (!Auth.IsStaff)
@@ -19,61 +15,67 @@
 }
 else if (_products is not null)
 {
-    <section class="pos-report">
-        <div class="pos-metrics">
-            <div class="pos-metric">
-                <span class="pos-metric-label">@L["FundsRaised"]</span>
-                <span class="pos-metric-value pos-metric-value--accent">@Money.FormatEuro(_report?.TotalFundsCents ?? 0)</span>
-            </div>
-            <div class="pos-metric">
-                <span class="pos-metric-label">@L["Orders"]</span>
-                <span class="pos-metric-value">@(_report?.OrderCount ?? 0)</span>
-            </div>
-        </div>
+    <MudTabs Elevation="0" Rounded="true" Color="Color.Transparent" Class="mt-2">
+        <MudTabPanel Text="@L["SalesSummary"]" Icon="@Icons.Material.Filled.Insights">
+            <section class="pos-report">
+                <div class="pos-metrics">
+                    <div class="pos-metric">
+                        <span class="pos-metric-label">@L["FundsRaised"]</span>
+                        <span class="pos-metric-value pos-metric-value--accent">@Money.FormatEuro(_report?.TotalFundsCents ?? 0)</span>
+                    </div>
+                    <div class="pos-metric">
+                        <span class="pos-metric-label">@L["Orders"]</span>
+                        <span class="pos-metric-value">@(_report?.OrderCount ?? 0)</span>
+                    </div>
+                </div>
 
-        @if (_report is { Items.Count: > 0 })
-        {
-            <table class="pos-report-table">
-                <thead>
-                    <tr>
-                        <th>@L["Product"]</th>
-                        <th class="pos-num">@L["Sold"]</th>
-                        <th class="pos-num">@L["Revenue"]</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in _report.Items)
-                    {
-                        <tr>
-                            <td>@item.Name</td>
-                            <td class="pos-num">@item.QuantitySold</td>
-                            <td class="pos-num">@Money.FormatEuro(item.RevenueCents)</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <p class="pos-report-empty">@L["NoSales"]</p>
-        }
-    </section>
+                @if (_report is { Items.Count: > 0 })
+                {
+                    <table class="pos-report-table">
+                        <thead>
+                            <tr>
+                                <th>@L["Product"]</th>
+                                <th class="pos-num">@L["Sold"]</th>
+                                <th class="pos-num">@L["Revenue"]</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in _report.Items)
+                            {
+                                <tr>
+                                    <td>@item.Name</td>
+                                    <td class="pos-num">@item.QuantitySold</td>
+                                    <td class="pos-num">@Money.FormatEuro(item.RevenueCents)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="pos-report-empty">@L["NoSales"]</p>
+                }
+            </section>
+        </MudTabPanel>
 
-    <MudTable Items="SecondHandProducts" Hover="true" Class="mt-6">
-        <HeaderContent>
-            <MudTh>@L["SecondHand"]</MudTh><MudTh>@L["Quantity"]</MudTh><MudTh></MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.Name</MudTd>
-            <MudTd>
-                <MudNumericField T="int" Value="@_edits[context.Id]" Min="0"
-                                 ValueChanged="@(v => _edits[context.Id] = v)" />
-            </MudTd>
-            <MudTd>
-                <MudButton Size="Size.Small" Color="Color.Primary" OnClick="@(() => Save(context.Id))">@L["Save"]</MudButton>
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+        <MudTabPanel Text="@L["SecondHandStock"]" Icon="@Icons.Material.Filled.Inventory2">
+            <MudTable Items="SecondHandProducts" Hover="true">
+                <HeaderContent>
+                    <MudTh>@L["SecondHand"]</MudTh><MudTh>@L["Quantity"]</MudTh><MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.Name</MudTd>
+                    <MudTd>
+                        <MudNumericField T="int" Value="@_edits[context.Id]" Min="0"
+                                         ValueChanged="@(v => _edits[context.Id] = v)" />
+                    </MudTd>
+                    <MudTd>
+                        <MudButton Size="Size.Small" Color="Color.Primary" OnClick="@(() => Save(context.Id))">@L["Save"]</MudButton>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudTabPanel>
+    </MudTabs>
 }
 
 @code {
@@ -109,8 +111,6 @@ else if (_products is not null)
         var result = await dialog.Result;
         if (result is not null && !result.Canceled) await Load();
     }
-
-    private void Logout() => Auth.Clear();
 
     private async Task Save(int productId)
     {

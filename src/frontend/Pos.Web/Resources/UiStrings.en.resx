@@ -73,6 +73,9 @@
   <data name="CashReceived" xml:space="preserve">
     <value>Cash received (€)</value>
   </data>
+  <data name="Exact" xml:space="preserve">
+    <value>Exact</value>
+  </data>
   <data name="Change" xml:space="preserve">
     <value>Change</value>
   </data>
@@ -174,5 +177,23 @@
   </data>
   <data name="NoSales" xml:space="preserve">
     <value>No sales yet</value>
+  </data>
+  <data name="OnlyLeft" xml:space="preserve">
+    <value>Only {0} left</value>
+  </data>
+  <data name="BasketStockWarning" xml:space="preserve">
+    <value>Some items exceed available stock. Adjust quantities before checkout.</value>
+  </data>
+  <data name="StockReduced" xml:space="preserve">
+    <value>{0}: only {1} left now</value>
+  </data>
+  <data name="NowSoldOut" xml:space="preserve">
+    <value>{0} is now sold out</value>
+  </data>
+  <data name="SalesSummary" xml:space="preserve">
+    <value>Sales summary</value>
+  </data>
+  <data name="SecondHandStock" xml:space="preserve">
+    <value>Second-hand stock</value>
   </data>
 </root>
