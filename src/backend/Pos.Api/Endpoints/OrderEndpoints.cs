@@ -8,7 +8,7 @@ public static class OrderEndpoints
 {
     public const string IdempotencyHeader = "Idempotency-Key";
 
-    public static IEndpointRouteBuilder MapOrderEndpoints(this IEndpointRouteBuilder group)
+    public static void MapOrderEndpoints(this IEndpointRouteBuilder group)
     {
         group.MapPost("/orders", async (CheckoutRequestBody body, CheckoutService checkout, HttpContext http, CancellationToken ct) =>
         {
@@ -29,7 +29,7 @@ public static class OrderEndpoints
                 body.CashPaidCents, key);
 
             var result = await checkout.CheckoutAsync(request, ct);
-            return Results.Created($"/api/v1/orders/{result.OrderId}", result);
+            return Results.CreatedAtRoute("GetOrder", new { id = result.OrderId }, result);
         })
         .WithSummary("Checkout: validate, take payment, decrement stock, persist the order.");
 
@@ -37,8 +37,7 @@ public static class OrderEndpoints
         {
             var order = await orders.GetByIdAsync(id, ct);
             return order is null ? Results.NotFound() : Results.Ok(OrderMapper.ToResult(order));
-        });
-
-        return group;
+        })
+        .WithName("GetOrder");
     }
 }

@@ -5,7 +5,7 @@ namespace Pos.Api.Endpoints;
 
 public static class AuthEndpoints
 {
-    public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder group)
+    public static void MapAuthEndpoints(this IEndpointRouteBuilder group)
     {
         group.MapPost("/auth/token", (TokenRequest req, TokenService tokens) =>
         {
@@ -16,7 +16,5 @@ public static class AuthEndpoints
         })
         .AllowAnonymous()
         .WithSummary("Exchange a staff credential for a JWT.");
-
-        return group;
     }
 }

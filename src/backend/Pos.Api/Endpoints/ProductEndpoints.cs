@@ -7,7 +7,7 @@ namespace Pos.Api.Endpoints;
 
 public static class ProductEndpoints
 {
-    public static IEndpointRouteBuilder MapProductEndpoints(this IEndpointRouteBuilder group)
+    public static void MapProductEndpoints(this IEndpointRouteBuilder group)
     {
         group.MapGet("/products", async (CatalogService catalog, [FromHeader(Name = "Accept-Language")] string? acceptLanguage, CancellationToken ct) =>
             Results.Ok(new ProductListResponse(await catalog.GetProductsAsync(acceptLanguage, ct))))
@@ -26,7 +26,5 @@ public static class ProductEndpoints
         })
         .RequireAuthorization(TokenService.StaffRole)
         .WithSummary("Set a product's stock quantity (staff only).");
-
-        return group;
     }
 }

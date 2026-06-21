@@ -27,6 +27,8 @@ public sealed class CheckoutEndpointsTests(PosApiFactory factory)
         var result = await resp.Content.ReadFromJsonAsync<CheckoutView>();
         Assert.Equal(130, result!.TotalCents);
         Assert.Equal(70, result.ChangeCents);
+        // CreatedAtRoute must resolve the versioned GetOrder route (including the {version} segment).
+        Assert.Equal($"/api/v1/orders/{result.OrderId}", resp.Headers.Location?.AbsolutePath);
     }
 
     [Fact]
