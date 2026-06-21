@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Pos.Api.Contracts;
 using Pos.Application.Abstractions;
 using Pos.Application.Checkout;
@@ -10,12 +11,13 @@ public static class OrderEndpoints
 
     public static void MapOrderEndpoints(this IEndpointRouteBuilder group)
     {
-        group.MapPost("/orders", async (CheckoutRequestBody body, CheckoutService checkout, HttpContext http, CancellationToken ct) =>
+        group.MapPost("/orders", async (CheckoutRequestBody body, [FromHeader(Name = IdempotencyHeader)] string? idempotencyKey, CheckoutService checkout, CancellationToken ct) =>
         {
-            // The key must identify the checkout *intent*, not the HTTP send — fabricating one here would
-            // silently disable idempotency for any caller that omits it, so reject rather than invent.
-            if (!http.Request.Headers.TryGetValue(IdempotencyHeader, out var raw)
-                || !Guid.TryParse(raw.ToString(), out var key))
+            // Declared as a parameter (not read off HttpContext) so OpenAPI documents it and Swagger renders
+            // an input field for it. The key must identify the checkout *intent*, not the HTTP send —
+            // fabricating one here would silently disable idempotency for any caller that omits it, so reject
+            // rather than invent.
+            if (!Guid.TryParse(idempotencyKey, out var key))
             {
                 return Results.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
