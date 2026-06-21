@@ -8,6 +8,38 @@ change to give back and records the sale so the charity can see the funds raised
 Built with **.NET 10**, **Blazor WebAssembly + MudBlazor**, **ASP.NET Core minimal API**,
 **PostgreSQL (EF Core 10)**, **SignalR**, and **Docker Compose**.
 
+## ⚡ Run it — one command
+
+> **All you need is [Docker](https://docs.docker.com/get-docker/) (with Compose). Nothing else to install.**
+
+From the repo root:
+
+```bash
+docker compose up --build
+```
+
+Then open **[http://localhost:8080](http://localhost:8080)** — that's the whole app. The single command
+builds and starts all three containers (web · api · db), and the API automatically applies the database
+migrations and seeds the catalog on startup.
+
+| What | URL |
+|---|---|
+| 🛒 **POS app** | **http://localhost:8080** |
+| 📘 Swagger UI (REST API) | http://localhost:8081/swagger |
+| ❤️ Health check | http://localhost:8081/health |
+
+> **One gotcha:** open the app via the same host the API allows. CORS allowlists both
+> `http://localhost:8080` and `http://127.0.0.1:8080` — pick one and stay consistent. Full details in
+> **[DEPLOY.md](DEPLOY.md)**.
+
+### Staff login (demo)
+
+The admin page (`/admin`) and the funds-raised report require a staff token:
+
+- **Username:** `staff` · **Password:** `staff-password`
+
+(Dev-only values — see [DEPLOY.md](DEPLOY.md) for configuring real secrets.)
+
 ## Features
 
 - **Touch-friendly sale screen** — product grid, tap to add (quantity = taps), sticky running total, reset & checkout.
@@ -35,38 +67,6 @@ tests/         Domain · Application · Api (Testcontainers) · Web (bUnit) · E
 docs/          architecture diagrams, design spec & plans
 ```
 
-## Quick start
-
-Requires **Docker** (with Compose). From the repo root:
-
-```bash
-docker compose up --build
-```
-
-Then open:
-
-| What | URL |
-|---|---|
-| POS app | http://localhost:8080 |
-| Swagger UI | http://localhost:8081/swagger |
-| Health | http://localhost:8081/health |
-
-The API applies database migrations and seeds the catalog automatically on startup.
-
-> **Note:** browse to the app using the same host spelling the API allows. CORS allowlists both
-> `http://localhost:8080` and `http://127.0.0.1:8080`; if you change ports/origins, update the API's
-> `Cors:Origins` accordingly. Full details in **[DEPLOY.md](DEPLOY.md)**.
-
-### Staff login (demo)
-
-The admin page (`/admin`) and the funds-raised report require a staff token. The compose dev
-credentials are:
-
-- **Username:** `staff`
-- **Password:** `staff-password`
-
-(Dev-only values — see [DEPLOY.md](DEPLOY.md) for configuring real secrets.)
-
 ## Running the tests
 
 ```bash
@@ -80,7 +80,7 @@ dotnet test tests/Pos.E2E.Tests
 docker compose down
 ```
 
-Coverage: Domain (27) · Application (21) · API integration on real Postgres (15) · Web bUnit (7) ·
+Coverage: Domain (27) · Application (21) · API integration on real Postgres (18) · Web bUnit (15) ·
 E2E scenarios (3: purchase + change, out-of-stock graying, language switch).
 
 ## Assumptions & trade-offs

@@ -103,8 +103,8 @@ stock; staff set them on the day via `/admin`.
 ## Verify the deployment
 
 ```bash
-curl -s http://localhost:8081/health                 # -> Healthy
-curl -s http://localhost:8081/api/v1/products | jq length   # -> 9
+curl -s http://localhost:8081/health                          # -> Healthy
+curl -s http://localhost:8081/api/v1/products | jq '.products | length'   # -> 9
 # then open http://localhost:8080, add items, check out, observe the change breakdown
 ```
 
