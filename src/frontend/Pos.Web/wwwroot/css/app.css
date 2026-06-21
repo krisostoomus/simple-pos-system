@@ -228,8 +228,9 @@ html, body {
 }
 
 .pos-section-icon {
-    font-size: 1.25rem;
-    line-height: 1;
+    /* Material icon tinted in muted slate — monochrome, on-palette section marker. */
+    font-size: 1.4rem;
+    color: var(--ink-soft);
 }
 
 .pos-section-title {

@@ -26,7 +26,7 @@ else
         var items = _products.Where(p => p.Category == category).ToList();
         <section class="pos-section">
             <div class="pos-section-head">
-                <span class="pos-section-icon">@CategoryIcon(category)</span>
+                <MudIcon Icon="@CategoryIcon(category)" Class="pos-section-icon" />
                 <span class="pos-section-title">@CategoryTitle(category)</span>
                 <span class="pos-section-count">@items.Count</span>
                 <span class="pos-section-rule"></span>
@@ -80,11 +80,13 @@ else
         _ => category,
     };
 
+    // Monochrome Material icons (tinted via .pos-section-icon) instead of multicolor emoji, to stay
+    // within the design system's restrained palette. See DESIGN_SYSTEM.md.
     private static string CategoryIcon(string category) => category switch
     {
-        ProductCategories.Edible => "🧁",
-        ProductCategories.SecondHand => "🛍️",
-        _ => "•",
+        ProductCategories.Edible => Icons.Material.Outlined.BakeryDining,
+        ProductCategories.SecondHand => Icons.Material.Outlined.Checkroom,
+        _ => Icons.Material.Outlined.Category,
     };
 
     private int TotalCents => Cart.TotalCents(_priceById);
