@@ -1,11 +1,18 @@
 @using Pos.Web.Services
 @inject CultureService Culture
 
-<MudMenu Icon="@Icons.Material.Filled.Language" Color="Color.Inherit" Dense="true">
-    <MudMenuItem OnClick="@(() => Switch("en"))">English</MudMenuItem>
-    <MudMenuItem OnClick="@(() => Switch("et"))">Eesti</MudMenuItem>
-</MudMenu>
+<span class="pos-lang">
+    <MudMenu Icon="@Icons.Material.Filled.Language" Color="Color.Inherit" Dense="true">
+        <MudMenuItem OnClick="@(() => Switch("en"))">English</MudMenuItem>
+        <MudMenuItem OnClick="@(() => Switch("et"))">Eesti</MudMenuItem>
+    </MudMenu>
+    <span class="pos-lang-code" title="@CurrentTitle">@CurrentCode</span>
+</span>
 
 @code {
+    // Shows which UI language is active next to the globe (et -> "EE", en -> "EN").
+    private string CurrentCode => Culture.Current == "et" ? "EE" : "EN";
+    private string CurrentTitle => Culture.Current == "et" ? "Eesti" : "English";
+
     private async Task Switch(string culture) => await Culture.SetAsync(culture);
 }

@@ -147,6 +147,23 @@ html, body {
     gap: .4rem;
 }
 
+/* Language switcher: globe icon + a code pill showing the active UI language. */
+.pos-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: .1rem;
+}
+.pos-lang-code {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    line-height: 1;
+    color: var(--forest);
+    padding: .12rem .32rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+}
+
 /* Hide the centered nav on phones to avoid colliding with the brand/actions */
 @media (max-width: 599px) {
     .pos-nav { display: none; }
