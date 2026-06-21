@@ -13,18 +13,25 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="0" Color="Color.Primary" Class="pos-appbar">
+    <MudAppBar Elevation="0" Color="Color.Transparent" Class="pos-appbar">
         <a href="/" class="pos-brand" aria-label="@L["AppTitle"]">
-            <span class="pos-brand-mark">✻</span>
             <span class="pos-brand-text">@L["AppTitle"]</span>
         </a>
+
+        <nav class="pos-nav">
+            <NavLink class="pos-nav-link" href="/" Match="NavLinkMatch.All">@L["Sale"]</NavLink>
+            <NavLink class="pos-nav-link" href="/admin" Match="NavLinkMatch.Prefix">@L["Admin"]</NavLink>
+        </nav>
+
         <MudSpacer />
-        <LanguageSwitcher />
-        <MudButton Href="/admin" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Inventory">@L["Admin"]</MudButton>
-        @if (Auth.IsStaff)
-        {
-            <MudButton OnClick="Logout" Color="Color.Inherit" StartIcon="@Icons.Material.Filled.Logout">@L["Logout"]</MudButton>
-        }
+        <div class="pos-header-actions">
+            <LanguageSwitcher />
+            @if (Auth.IsStaff)
+            {
+                <MudButton OnClick="Logout" Variant="Variant.Outlined" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Logout">@L["Logout"]</MudButton>
+            }
+        </div>
     </MudAppBar>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
@@ -38,23 +45,26 @@
     {
         PaletteLight = new PaletteLight
         {
-            Primary = "#10B981",        // the one accent — vibrant mint
-            Secondary = "#059669",      // emerald, pressed
+            Primary = "#059669",        // the one accent — Mint Emerald
+            Secondary = "#047857",      // darker emerald, pressed
             Tertiary = "#64748B",       // muted slate
-            AppbarBackground = "#FFFFFF",
+            AppbarBackground = "#F9FAFB", // crisp off-white (never pure white)
             Background = "#F9FAFB",      // crisp off-white canvas
-            Surface = "#FFFFFF",
+            Surface = "#F9FAFB",         // cards & dialogs — off-white
             TextPrimary = "#1E293B",    // deep slate
             TextSecondary = "#64748B",
             ActionDefault = "#64748B",
-            DrawerBackground = "#FFFFFF",
-            LinesDefault = "#E5E7EB",
+            DrawerBackground = "#F9FAFB",
+            LinesDefault = "#E5E7EB",   // cool-gray structure
             Divider = "#E5E7EB",
-            Error = "#DC2626",
+            Error = "#FF4D4F",          // semantic alert tokens
+            Warning = "#F59E0B",
+            Success = "#059669",       // = accent green (one unified green)
+            Info = "#3B82F6",
         },
         LayoutProperties = new LayoutProperties
         {
-            DefaultBorderRadius = "10px",
+            DefaultBorderRadius = "16px", // rounded-2xl
         }
     };
 

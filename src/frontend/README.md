@@ -7,7 +7,7 @@ HTTP and subscribes to the SignalR stock hub. Served as static files by nginx in
 
 | Path | Responsibility |
 |---|---|
-| `Pages/Sale.razor` | The POS screen (`/`): product grid, sticky total, reset/checkout, live stock. |
+| `Pages/Sale.razor` | The POS screen (`/`): products grouped into **Edible** / **Second-hand** category sections, sticky total, reset/checkout, live stock. |
 | `Pages/Admin.razor` | Staff page (`/admin`): login + set second-hand stock. |
 | `Components/` | `ProductCard`, `CheckoutDialog`, `StaffLoginDialog`, `LanguageSwitcher`. |
 | `Services/` | `PosApiClient` (typed HTTP), `CartService` (client-side cart), `StockHubClient` (SignalR), `AuthState` (JWT), `CultureService` (culture in `localStorage`). |

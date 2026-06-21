@@ -1,5 +1,15 @@
-﻿@page "/not-found"
+@page "/not-found"
 @layout MainLayout
+@inject IStringLocalizer<UiStrings> L
 
-<h3>Not Found</h3>
-<p>Sorry, the content you are looking for does not exist.</p>
+<PageTitle>@L["PageNotFound"] · @L["AppTitle"]</PageTitle>
+
+<header class="pos-page-head">
+    <span class="pos-eyebrow">404</span>
+    <h1 class="pos-title">@L["PageNotFound"]</h1>
+</header>
+
+<p class="pos-notfound-text">@L["PageNotFoundBody"]</p>
+
+<MudButton Href="/" Variant="Variant.Filled" Color="Color.Primary"
+           StartIcon="@Icons.Material.Filled.Storefront">@L["Sale"]</MudButton>

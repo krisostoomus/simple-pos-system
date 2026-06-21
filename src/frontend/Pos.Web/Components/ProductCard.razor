@@ -46,9 +46,9 @@
         }
     }
 
-    private string ImageUrl => $"images/{Product.ImageKey}.svg";
+    private string ImageUrl => $"images/{Product.ImageKey}.jpg";
 
-    // Emoji is the graceful fallback when an SVG is missing for an ImageKey.
+    // Emoji is the graceful fallback when a photo is missing for an ImageKey.
     private string Emoji => Product.ImageKey switch
     {
         "brownie" => "🍫",

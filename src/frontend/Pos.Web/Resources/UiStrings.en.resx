@@ -94,6 +94,9 @@
   <data name="InCart" xml:space="preserve">
     <value>In cart: {0}</value>
   </data>
+  <data name="Sale" xml:space="preserve">
+    <value>Sale</value>
+  </data>
   <data name="Admin" xml:space="preserve">
     <value>Admin</value>
   </data>
@@ -195,5 +198,11 @@
   </data>
   <data name="SecondHandStock" xml:space="preserve">
     <value>Second-hand stock</value>
+  </data>
+  <data name="PageNotFound" xml:space="preserve">
+    <value>Page not found</value>
+  </data>
+  <data name="PageNotFoundBody" xml:space="preserve">
+    <value>Sorry, that page doesn’t exist.</value>
   </data>
 </root>

@@ -25,7 +25,7 @@
             {
                 <div class="pos-basket-line @(line.ExceedsStock ? "pos-basket-line--warn" : "")" @key="line.Product.Id">
                     <div class="pos-basket-thumb">
-                        <img class="pos-basket-img" src="@($"images/{line.Product.ImageKey}.svg")"
+                        <img class="pos-basket-img" src="@($"images/{line.Product.ImageKey}.jpg")"
                              alt="" draggable="false" loading="lazy"
                              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
                         <span class="pos-basket-emoji" style="display:none" aria-hidden="true">🛍️</span>

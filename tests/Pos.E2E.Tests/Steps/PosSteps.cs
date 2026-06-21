@@ -28,8 +28,9 @@ public sealed class PosSteps(ScenarioContext context)
 
     [Then(@"the running total shows ""(.*)""")]
     public async Task ThenTotalShows(string amount)
-        // Use a partial text locator to handle any currency symbol encoding variation
-        => await Page.Locator($"text=/Total:.*{amount}/").WaitForAsync(new() { Timeout = 15_000 });
+        // Partial text locator: tolerant of currency-symbol encoding and the label/amount being in
+        // separate elements (the colon is optional since the UI renders label and figure as siblings).
+        => await Page.Locator($"text=/Total.*{amount}/").WaitForAsync(new() { Timeout = 15_000 });
 
     [When(@"I checkout with cash ""(.*)""")]
     public async Task WhenCheckout(string cash)
@@ -43,7 +44,7 @@ public sealed class PosSteps(ScenarioContext context)
 
     [Then(@"the change shown is ""(.*)""")]
     public async Task ThenChangeShown(string amount)
-        => await Page.Locator($"text=/Change:.*{amount}/").WaitForAsync(new() { Timeout = 15_000 });
+        => await Page.Locator($"text=/Change.*{amount}/").WaitForAsync(new() { Timeout = 15_000 });
 
     [Then(@"the ""(.*)"" product is grayed out")]
     public async Task ThenGrayedOut(string name)

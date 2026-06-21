@@ -4,12 +4,14 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pos.Web</title>
+    <title>Charity Bake Sale</title>
     <base href="/" />
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/app.css" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
     <link href="Pos.Web.styles.css" rel="stylesheet" />
     <script type="importmap"></script>
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
@@ -34,6 +36,29 @@
     </div>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script>
+        // Ghost header: frost the app bar once the page scrolls, tuck it away on the
+        // way down and snap it back on the way up. Vanilla + rAF-throttled; the app bar
+        // is rendered by Blazor so we look it up lazily on each frame.
+        (function () {
+            var lastY = window.scrollY || 0;
+            var ticking = false;
+            function update() {
+                var bar = document.querySelector('.pos-appbar');
+                if (bar) {
+                    var y = window.scrollY || 0;
+                    bar.classList.toggle('pos-appbar--scrolled', y > 8);
+                    if (y > lastY && y > 88) bar.classList.add('pos-appbar--hidden');
+                    else bar.classList.remove('pos-appbar--hidden');
+                    lastY = y;
+                }
+                ticking = false;
+            }
+            window.addEventListener('scroll', function () {
+                if (!ticking) { window.requestAnimationFrame(update); ticking = true; }
+            }, { passive: true });
+        })();
+    </script>
 </body>
 
 </html>

@@ -9,17 +9,27 @@
     --font-mono: 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
     --paper: #F9FAFB;       /* crisp off-white canvas (60%)   */
-    --card: #FFFFFF;        /* card surface                   */
-    --sunk: #F3F4F6;        /* inset / thumbnail wash         */
+    --card: #F9FAFB;        /* card surface — off-white, never pure white */
+    --sunk: #E5E7EB;        /* inset / thumbnail wash (cool gray) */
     --ink: #1E293B;         /* deep slate text & structure    */
     --ink-soft: #64748B;    /* muted slate                    */
     --ink-faint: #94A3B8;   /* faintest text / icons          */
     --line: #E5E7EB;        /* cool-gray hairlines (30%)      */
 
-    --forest: #10B981;      /* the one accent — vibrant mint  */
-    --forest-deep: #059669; /* emerald, pressed / hover       */
+    --forest: #059669;      /* the one accent — Mint Emerald  */
+    --forest-deep: #047857; /* darker emerald, pressed / hover */
     --green-tint: #ECFDF5;  /* subtle mint fill               */
-    --danger: #DC2626;      /* destructive / error only       */
+
+    /* Semantic alert tokens — toasts, alerts, validation, status */
+    --error: #FF4D4F;       /* error / destructive            */
+    --warning: #F59E0B;     /* warning / caution              */
+    --success: #059669;     /* success / confirm = accent green */
+    --info: #3B82F6;        /* info / notification            */
+    --content: #1A1A1A;     /* dark neutral text (on glass)   */
+    --warning-tint: #FEF3C7;/* legible amber fill             */
+    --warning-ink: #92400E; /* legible amber text (small)     */
+
+    --danger: var(--error); /* destructive UI uses the error token */
     --danger-tint: #FEF2F2; /* subtle danger fill             */
 
     --shadow-rest: 0 1px 3px rgba(15, 23, 42, .04), 0 8px 24px -14px rgba(15, 23, 42, .10);
@@ -36,11 +46,30 @@ html, body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* ---- App bar / brand --------------------------------------------------- */
+/* ---- App bar: ghost header w/ glassmorphism ---------------------------- */
+/* Near-transparent at the top; on scroll it frosts (blur) and grows a hairline.
+   Scrolling down tucks it away, scrolling up snaps it back — see wwwroot index JS. */
 .pos-appbar {
-    background: var(--card) !important;
+    position: relative;
     color: var(--ink) !important;
-    border-bottom: 1px solid var(--line);
+    background: rgba(249, 250, 251, .55) !important;   /* off-white, never pure white */
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    backdrop-filter: saturate(180%) blur(12px);
+    border-bottom: 1px solid transparent;
+    transition: transform .32s cubic-bezier(.2, .8, .2, 1),
+                background .25s ease, border-color .25s ease, box-shadow .25s ease;
+    will-change: transform;
+}
+
+.pos-appbar--scrolled {
+    background: rgba(249, 250, 251, .82) !important;
+    border-bottom-color: var(--line);
+    box-shadow: 0 8px 24px -18px rgba(15, 23, 42, .22);
+}
+
+/* Ghost: lift out of view on the way down, snap back on the way up */
+.pos-appbar--hidden {
+    transform: translateY(-100%);
 }
 
 .pos-brand {
@@ -71,16 +100,88 @@ html, body {
     color: var(--ink);
 }
 
+/* Centered navigation — absolutely centered so side widths don't shift it */
+.pos-nav {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    gap: 1.9rem;
+}
+
+.pos-nav-link {
+    position: relative;
+    text-decoration: none;
+    color: var(--ink-soft);
+    font-weight: 600;
+    font-size: .95rem;
+    letter-spacing: -.01em;
+    padding: .35rem .15rem;
+    transition: color .15s ease;
+}
+.pos-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -3px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--forest);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .24s cubic-bezier(.2, .8, .2, 1);
+}
+.pos-nav-link:hover { color: var(--ink); }
+.pos-nav-link:hover::after,
+.pos-nav-link.active::after { transform: scaleX(1); }
+.pos-nav-link.active { color: var(--forest); }
+.pos-nav-link:focus-visible { outline: 2px solid var(--forest); outline-offset: 4px; border-radius: 4px; }
+
+/* Right-hand actions cluster */
+.pos-header-actions {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+/* Hide the centered nav on phones to avoid colliding with the brand/actions */
+@media (max-width: 599px) {
+    .pos-nav { display: none; }
+}
+
 /* ---- Page header ------------------------------------------------------- */
 .pos-page-head {
-    margin: .25rem 0 1.75rem;
+    margin: 1.25rem 0 2.25rem;
+}
+
+/* Small uppercase eyebrow above the title — a quiet accent, high negative space */
+.pos-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--forest);
+    margin-bottom: .7rem;
+}
+.pos-eyebrow::before {
+    content: "";
+    width: 1.6rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--forest);
 }
 
 .pos-title {
     font-weight: 800;
-    font-size: clamp(1.8rem, 3.6vw, 2.6rem);
-    line-height: 1.04;
-    letter-spacing: -.03em;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.02;
+    letter-spacing: -.035em;
     color: var(--ink);
     margin: 0;
 }
@@ -89,6 +190,58 @@ html, body {
     display: flex;
     justify-content: center;
     padding: 4rem 0;
+}
+
+.pos-notfound-text {
+    color: var(--ink-soft);
+    font-size: 1rem;
+    margin: 0 0 1.5rem;
+}
+
+/* ---- Product category sections ----------------------------------------- */
+.pos-section {
+    margin-bottom: 2.5rem;
+}
+
+.pos-section-head {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    margin: 0 0 1.1rem;
+}
+
+.pos-section-icon {
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+.pos-section-title {
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -.02em;
+    color: var(--ink);
+}
+
+.pos-section-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 .5rem;
+    font-family: var(--font-mono);
+    font-size: .78rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+    background: var(--sunk);
+    border-radius: 999px;
+}
+
+.pos-section-rule {
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--line);
 }
 
 /* ---- Product card ------------------------------------------------------ */
@@ -131,7 +284,7 @@ html, body {
 .pos-card:focus-visible {
     outline: none;
     border-color: var(--forest);
-    box-shadow: var(--shadow-rest), 0 0 0 3px rgba(16, 185, 129, .22);
+    box-shadow: var(--shadow-rest), 0 0 0 3px rgba(5, 150, 105, .22);
 }
 
 /* In-cart state — green edge + ring */
@@ -144,10 +297,10 @@ html, body {
     border-color: var(--forest);
 }
 
-/* Thumbnail */
+/* Thumbnail — full-bleed product photo */
 .pos-thumb {
     position: relative;
-    height: 124px;
+    height: 150px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -165,12 +318,12 @@ html, body {
 }
 
 .pos-img {
-    position: relative;
-    width: 92px;
-    height: 92px;
-    object-fit: contain;
-    filter: drop-shadow(0 4px 7px rgba(15, 23, 42, .12));
-    transition: transform .18s cubic-bezier(.2, .8, .2, 1);
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform .35s cubic-bezier(.2, .8, .2, 1);
 }
 
 .pos-card:hover .pos-emoji,
@@ -233,7 +386,7 @@ html, body {
     font-size: .85rem;
     font-variant-numeric: tabular-nums;
     border-radius: 999px;
-    box-shadow: 0 3px 8px rgba(16, 185, 129, .35);
+    box-shadow: 0 3px 8px rgba(5, 150, 105, .35);
     animation: pos-pop .26s cubic-bezier(.2, 1.5, .4, 1);
 }
 
@@ -322,9 +475,9 @@ html, body {
     flex: 0 1 auto;
     min-width: 0;
     font-size: .8rem;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.25;
-    color: var(--danger);
+    color: var(--warning-ink);
 }
 
 /* ---- Editable basket panel (sits above the checkout bar) --------------- */
@@ -363,15 +516,16 @@ html, body {
 .pos-basket-handle-label { display: flex; align-items: center; gap: .5rem; }
 .pos-basket-cart { font-size: 1.05rem; }
 .pos-basket-chevron { color: var(--ink-faint); font-size: 1rem; }
-.pos-basket-alert { color: var(--danger); font-size: 1rem; line-height: 1; }
+.pos-basket-alert { color: var(--warning); font-size: 1rem; line-height: 1; }
 
-/* Stock notice banner at the top of the open sheet */
+/* Stock notice banner at the top of the open sheet — caution, high contrast */
 .pos-basket-notice {
     margin: .65rem .85rem .25rem;
     padding: .55rem .8rem;
-    background: var(--danger-tint);
-    color: var(--danger);
-    border: 1px solid #FECACA;
+    background: var(--warning-tint);
+    color: var(--content);
+    border: 0;
+    border-left: 3px solid var(--warning);
     border-radius: 9px;
     font-size: .82rem;
     font-weight: 600;
@@ -379,12 +533,12 @@ html, body {
 }
 
 /* A line whose quantity now exceeds available stock */
-.pos-basket-line--warn { background: var(--danger-tint); box-shadow: inset 3px 0 0 var(--danger); }
+.pos-basket-line--warn { background: var(--warning-tint); box-shadow: inset 3px 0 0 var(--warning); }
 .pos-basket-warn {
     margin-top: .15rem;
     font-size: .74rem;
-    font-weight: 600;
-    color: var(--danger);
+    font-weight: 700;
+    color: var(--warning-ink);
     letter-spacing: .01em;
 }
 
@@ -591,12 +745,233 @@ html, body {
     text-align: center;
 }
 
+/* ---- Checkout / change dialog ------------------------------------------ */
+.pos-pay {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    min-width: min(82vw, 340px);
+    padding-top: .25rem;
+}
+
+/* Total due — quiet uppercase label, emerald figure */
+.pos-pay-summary {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.1rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.pos-pay-label {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+.pos-pay-total {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.9rem;
+    line-height: 1;
+    letter-spacing: -.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+}
+
+/* Quick-tender chips (Exact + common notes) */
+.pos-pay-tender {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.pos-tender {
+    flex: 1 1 auto;
+    min-width: 4.2rem;
+    padding: .6rem .75rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: .95rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .14s ease, border-color .14s ease, color .14s ease;
+}
+.pos-tender:hover:not(:disabled) {
+    background: var(--green-tint);
+    border-color: var(--forest);
+    color: var(--forest-deep);
+}
+.pos-tender:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+.pos-tender:disabled { opacity: .4; cursor: not-allowed; }
+
+/* "Exact" reads as the primary tender — filled emerald */
+.pos-tender--exact {
+    color: #fff;
+    background: var(--forest);
+    border-color: var(--forest);
+}
+.pos-tender--exact:hover:not(:disabled) {
+    background: var(--forest-deep);
+    border-color: var(--forest-deep);
+    color: #fff;
+}
+
+.pos-pay-field { margin-top: .1rem; }
+
+/* Advisory change preview while the cashier is still typing */
+.pos-pay-change {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .7rem .9rem;
+    background: var(--green-tint);
+    border: 1px solid #A7F3D0;
+    border-radius: 12px;
+}
+
+.pos-pay-change-label {
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--forest);
+}
+
+.pos-pay-change-amount {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.15rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--forest);
+}
+
+/* Settled change — the money to hand back, the hero of the result state */
+.pos-change-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .3rem;
+    padding: 1.5rem 1rem;
+    background: var(--green-tint);
+    border: 1px solid #A7F3D0;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.pos-change-hero-label {
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--forest);
+}
+
+.pos-change-hero-amount {
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: 2.6rem;
+    line-height: 1;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--forest);
+}
+
+/* Denomination breakdown — what notes & coins to count out */
+.pos-change-pieces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-content: center;
+}
+
+.pos-change-piece {
+    display: inline-flex;
+    align-items: baseline;
+    gap: .35rem;
+    padding: .42rem .7rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+}
+
+.pos-change-piece-count {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--forest);
+}
+
+.pos-change-piece-denom {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: .9rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+}
+
+/* ===========================================================================
+   Notifications — translucent glass toasts + inline alerts (semantic tokens)
+   Variant 1: frosted white surface, dark neutral text, a 1px LEFT edge in the
+   type color, and the icon tinted to the matching solid token.
+   =========================================================================== */
+
+/* Floating toasts (MudBlazor Snackbar) — the glass surface */
+.mud-snackbar {
+    background: rgba(255, 255, 255, .85) !important;
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    color: var(--content) !important;
+    border: 0 !important;
+    border-left: 1px solid var(--line) !important;   /* recolored per severity below */
+    box-shadow: 0 10px 30px -12px rgba(15, 23, 42, .35) !important;
+}
+.mud-snackbar .mud-snackbar-content-message,
+.mud-snackbar .mud-snackbar-content-action,
+.mud-snackbar .mud-snackbar-content-action .mud-button-label { color: var(--content) !important; }
+.mud-snackbar .mud-snackbar-icon { opacity: 1 !important; }
+
+/* Inline alerts (MudBlazor MudAlert) — same dark-text + token-edge language */
+.mud-alert {
+    color: var(--content) !important;
+    border-left: 1px solid var(--line) !important;
+    border-radius: 12px !important;
+}
+.mud-alert .mud-alert-message { color: var(--content) !important; }
+
+/* Severity → 1px left edge color (applies to both snackbars and alerts) */
+.mud-alert-filled-error,   .mud-alert-text-error,   .mud-alert-outlined-error   { border-left-color: var(--error) !important; }
+.mud-alert-filled-warning, .mud-alert-text-warning, .mud-alert-outlined-warning { border-left-color: var(--warning) !important; }
+.mud-alert-filled-success, .mud-alert-text-success, .mud-alert-outlined-success { border-left-color: var(--success) !important; }
+.mud-alert-filled-info,    .mud-alert-text-info,    .mud-alert-outlined-info    { border-left-color: var(--info) !important; }
+
+/* Severity → icon in the solid token color */
+.mud-alert-filled-error .mud-snackbar-icon,   .mud-alert-text-error .mud-snackbar-icon,
+.mud-alert-filled-error .mud-alert-icon,       .mud-alert-text-error .mud-alert-icon       { color: var(--error) !important; }
+.mud-alert-filled-warning .mud-snackbar-icon, .mud-alert-text-warning .mud-snackbar-icon,
+.mud-alert-filled-warning .mud-alert-icon,     .mud-alert-text-warning .mud-alert-icon     { color: var(--warning) !important; }
+.mud-alert-filled-success .mud-snackbar-icon, .mud-alert-text-success .mud-snackbar-icon,
+.mud-alert-filled-success .mud-alert-icon,     .mud-alert-text-success .mud-alert-icon     { color: var(--success) !important; }
+.mud-alert-filled-info .mud-snackbar-icon,    .mud-alert-text-info .mud-snackbar-icon,
+.mud-alert-filled-info .mud-alert-icon,        .mud-alert-text-info .mud-alert-icon        { color: var(--info) !important; }
+
 @media (prefers-reduced-motion: reduce) {
     .pos-card { animation: none; opacity: 1; transform: none; }
     .pos-card, .pos-emoji, .pos-img, .pos-cart-badge { transition: none; }
     .pos-basket-sheet, .pos-basket-handle,
     .pos-basket-dec, .pos-basket-inc, .pos-basket-remove { transition: none; }
+    .pos-tender { transition: none; }
     .pos-brand { transition: none; }
+    .pos-appbar, .pos-nav-link, .pos-nav-link::after { transition: none; }
 }
 
 /* ===========================================================================
@@ -613,7 +988,7 @@ a, .btn-link { color: var(--forest); }
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem rgba(16, 185, 129, .5);
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem rgba(5, 150, 105, .5);
 }
 
 .content { padding-top: 1.1rem; }
@@ -687,7 +1062,7 @@ a, .btn-link { color: var(--forest); }
         content: var(--blazor-load-percentage-text, "Loading");
     }
 
-code { color: var(--forest-deep); }
+code { color: var(--forest); }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
     color: var(--bs-secondary-color);

@@ -94,6 +94,9 @@
   <data name="InCart" xml:space="preserve">
     <value>Korvis: {0}</value>
   </data>
+  <data name="Sale" xml:space="preserve">
+    <value>Müük</value>
+  </data>
   <data name="Admin" xml:space="preserve">
     <value>Haldus</value>
   </data>
@@ -195,5 +198,11 @@
   </data>
   <data name="SecondHandStock" xml:space="preserve">
     <value>Kasutatud kauba laoseis</value>
+  </data>
+  <data name="PageNotFound" xml:space="preserve">
+    <value>Lehte ei leitud</value>
+  </data>
+  <data name="PageNotFoundBody" xml:space="preserve">
+    <value>Vabandust, sellist lehte ei ole olemas.</value>
   </data>
 </root>

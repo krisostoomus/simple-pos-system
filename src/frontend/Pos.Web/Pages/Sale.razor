@@ -7,7 +7,10 @@
 @inject ISnackbar Snackbar
 @inject IStringLocalizer<UiStrings> L
 
+<PageTitle>@L["AppTitle"]</PageTitle>
+
 <header class="pos-page-head">
+    <span class="pos-eyebrow">@L["Sale"]</span>
     <h1 class="pos-title">@L["AppTitle"]</h1>
 </header>
 
@@ -17,15 +20,27 @@
 }
 else
 {
-    <MudGrid>
-        @{ var _i = 0; }
-        @foreach (var p in _products)
-        {
-            <MudItem xs="6" sm="4" md="3">
-                <ProductCard Product="p" Quantity="Cart.QuantityOf(p.Id)" Index="_i++" OnAddToCart="Add" />
-            </MudItem>
-        }
-    </MudGrid>
+    var _i = 0;
+    foreach (var category in OrderedCategories)
+    {
+        var items = _products.Where(p => p.Category == category).ToList();
+        <section class="pos-section">
+            <div class="pos-section-head">
+                <span class="pos-section-icon">@CategoryIcon(category)</span>
+                <span class="pos-section-title">@CategoryTitle(category)</span>
+                <span class="pos-section-count">@items.Count</span>
+                <span class="pos-section-rule"></span>
+            </div>
+            <MudGrid>
+                @foreach (var p in items)
+                {
+                    <MudItem xs="6" sm="4" md="3">
+                        <ProductCard Product="p" Quantity="Cart.QuantityOf(p.Id)" Index="_i++" OnAddToCart="Add" />
+                    </MudItem>
+                }
+            </MudGrid>
+        </section>
+    }
 
     <BasketPanel Lines="BasketLines" OnAdd="Add" OnRemove="RemoveItem" OnRemoveLine="RemoveLine" />
 
@@ -48,6 +63,29 @@ else
 @code {
     private IReadOnlyList<ProductModel>? _products;
     private Dictionary<int, int> _priceById = new();
+
+    // Group the catalog into category sections: Edible first, then Second-hand, then any others.
+    private static readonly string[] CategoryOrder = [ProductCategories.Edible, ProductCategories.SecondHand];
+
+    private IEnumerable<string> OrderedCategories =>
+        _products is null
+            ? []
+            : _products.Select(p => p.Category).Distinct()
+                .OrderBy(c => Array.IndexOf(CategoryOrder, c) is var i && i >= 0 ? i : int.MaxValue);
+
+    private string CategoryTitle(string category) => category switch
+    {
+        ProductCategories.Edible => L["Edible"],
+        ProductCategories.SecondHand => L["SecondHand"],
+        _ => category,
+    };
+
+    private static string CategoryIcon(string category) => category switch
+    {
+        ProductCategories.Edible => "🧁",
+        ProductCategories.SecondHand => "🛍️",
+        _ => "•",
+    };
 
     private int TotalCents => Cart.TotalCents(_priceById);
 

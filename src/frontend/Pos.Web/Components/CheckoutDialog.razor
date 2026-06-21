@@ -3,35 +3,59 @@
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h6">@L["Total"]: @Money.FormatEuro(TotalCents)</MudText>
-
         @if (_result is null)
         {
-            <div class="d-flex gap-2 flex-wrap mt-3 mb-1">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="_busy"
-                           OnClick="@(() => Tender(TotalCents))">@L["Exact"]</MudButton>
-                @foreach (var note in QuickNotes)
+            <div class="pos-pay">
+                <div class="pos-pay-summary">
+                    <span class="pos-pay-label">@L["Total"]</span>
+                    <span class="pos-pay-total">@Money.FormatEuro(TotalCents)</span>
+                </div>
+
+                <div class="pos-pay-tender">
+                    <button type="button" class="pos-tender pos-tender--exact" disabled="@_busy"
+                            @onclick="@(() => Tender(TotalCents))">@L["Exact"]</button>
+                    @foreach (var note in QuickNotes)
+                    {
+                        <button type="button" class="pos-tender"
+                                disabled="@(_busy || note < TotalCents)"
+                                @onclick="@(() => Tender(note))">@Money.FormatEuro(note)</button>
+                    }
+                </div>
+
+                <MudTextField @ref="_cashField" @bind-Value="_cashText" Label="@L["CashReceived"]"
+                              Variant="Variant.Outlined" Class="pos-pay-field"
+                              InputMode="@(InputMode.@decimal)" Immediate="true" OnKeyDown="OnCashKeyDown" />
+
+                @if (ChangePreviewCents is int preview)
                 {
-                    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
-                               Disabled="@(_busy || note < TotalCents)"
-                               OnClick="@(() => Tender(note))">@Money.FormatEuro(note)</MudButton>
+                    <div class="pos-pay-change">
+                        <span class="pos-pay-change-label">@L["Change"]</span>
+                        <span class="pos-pay-change-amount">@Money.FormatEuro(preview)</span>
+                    </div>
                 }
             </div>
-
-            <MudTextField @ref="_cashField" @bind-Value="_cashText" Label="@L["CashReceived"]"
-                          InputMode="@(InputMode.@decimal)" Immediate="true" OnKeyDown="OnCashKeyDown" />
-
-            @if (ChangePreviewCents is int preview)
-            {
-                <MudText Typo="Typo.body2" Class="mt-1">@L["Change"]: @Money.FormatEuro(preview)</MudText>
-            }
         }
         else
         {
-            <MudAlert Severity="Severity.Success" Class="mt-3">
-                @L["Change"]: @Money.FormatEuro(_result.ChangeCents)
-                <MudText Typo="Typo.caption">@ChangeBreakdown(_result)</MudText>
-            </MudAlert>
+            <div class="pos-pay">
+                <div class="pos-change-hero">
+                    <span class="pos-change-hero-label">@L["Change"]</span>
+                    <span class="pos-change-hero-amount">@Money.FormatEuro(_result.ChangeCents)</span>
+                </div>
+
+                @if (_result.Change.Count > 0)
+                {
+                    <div class="pos-change-pieces">
+                        @foreach (var piece in _result.Change)
+                        {
+                            <div class="pos-change-piece">
+                                <span class="pos-change-piece-count">@piece.Count×</span>
+                                <span class="pos-change-piece-denom">@Money.FormatEuro(piece.DenominationCents)</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
         }
 
         @if (_error is not null)
@@ -152,7 +176,4 @@
 
     private void Cancel() => Dialog.Cancel();
     private void Done() => Dialog.Close(DialogResult.Ok(_result));
-
-    private static string ChangeBreakdown(CheckoutResultModel r)
-        => string.Join(", ", r.Change.Select(c => $"{c.Count}x {Money.FormatEuro(c.DenominationCents)}"));
 }
