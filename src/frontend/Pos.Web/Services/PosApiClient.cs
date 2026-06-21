@@ -6,8 +6,8 @@ using Pos.Web.Models;
 
 namespace Pos.Web.Services;
 
-/// <summary>Typed wrapper over the POS REST API. Sends Accept-Language for localized names and a
-/// fresh Idempotency-Key per checkout, and attaches the staff bearer token when present.</summary>
+/// <summary>Typed wrapper over the POS REST API. Sends Accept-Language for localized names and the
+/// caller's Idempotency-Key per checkout, and attaches the staff bearer token when present.</summary>
 public sealed class PosApiClient(HttpClient http, AuthState auth, CultureService culture)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
@@ -21,13 +21,15 @@ public sealed class PosApiClient(HttpClient http, AuthState auth, CultureService
         return (await resp.Content.ReadFromJsonAsync<List<ProductModel>>(Json, ct))!;
     }
 
-    public async Task<CheckoutResultModel> CheckoutAsync(CheckoutBody body, CancellationToken ct = default)
+    // The idempotency key is supplied by the caller (not minted here) so it stays stable across retries
+    // and manual re-submits of the *same* checkout — that stability is what lets the server dedupe.
+    public async Task<CheckoutResultModel> CheckoutAsync(CheckoutBody body, Guid idempotencyKey, CancellationToken ct = default)
     {
         using var req = new HttpRequestMessage(HttpMethod.Post, "api/v1/orders")
         {
             Content = JsonContent.Create(body, options: Json),
         };
-        req.Headers.Add("Idempotency-Key", Guid.NewGuid().ToString());
+        req.Headers.Add("Idempotency-Key", idempotencyKey.ToString());
         using var resp = await http.SendAsync(req, ct);
         await EnsureSuccess(resp);
         return (await resp.Content.ReadFromJsonAsync<CheckoutResultModel>(Json, ct))!;

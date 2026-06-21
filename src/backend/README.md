@@ -22,7 +22,9 @@ ports and is wired only at the composition root (`AddInfrastructure`).
   `IdempotencyKey` violation to `DuplicateIdempotencyKeyException` (→ idempotent replay).
 - **Errors** are RFC 9457 `ProblemDetails` carrying a language-neutral `errorCode`
   (`out_of_stock`, `insufficient_payment`, `empty_cart`, `invalid_quantity`, `unknown_product`,
-  `concurrency_conflict`, `not_found`) so the client localizes messages itself.
+  `concurrency_conflict`, `not_found`, `missing_idempotency_key`) so the client localizes messages itself.
+- **Checkout requires an `Idempotency-Key` header** (a GUID); a missing/non-GUID key is rejected with
+  `400 missing_idempotency_key` rather than fabricated, so idempotency can't be silently bypassed.
 - **Order lines snapshot** product name + unit price for historical accuracy.
 
 ## Endpoints

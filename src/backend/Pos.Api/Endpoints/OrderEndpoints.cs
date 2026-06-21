@@ -12,10 +12,17 @@ public static class OrderEndpoints
     {
         group.MapPost("/orders", async (CheckoutRequestBody body, CheckoutService checkout, HttpContext http, CancellationToken ct) =>
         {
-            var key = http.Request.Headers.TryGetValue(IdempotencyHeader, out var raw)
-                && Guid.TryParse(raw.ToString(), out var parsed)
-                ? parsed
-                : Guid.NewGuid();
+            // The key must identify the checkout *intent*, not the HTTP send — fabricating one here would
+            // silently disable idempotency for any caller that omits it, so reject rather than invent.
+            if (!http.Request.Headers.TryGetValue(IdempotencyHeader, out var raw)
+                || !Guid.TryParse(raw.ToString(), out var key))
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "missing_idempotency_key",
+                    detail: $"A '{IdempotencyHeader}' request header carrying a GUID is required for checkout.",
+                    extensions: new Dictionary<string, object?> { ["errorCode"] = "missing_idempotency_key" });
+            }
 
             var request = new CheckoutRequest(
                 body.Lines.Select(l => new CheckoutLine(l.ProductId, l.Quantity)).ToList(),

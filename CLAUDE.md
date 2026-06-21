@@ -54,13 +54,18 @@ These cross-cutting contracts span multiple files and are the things most likely
   greedy function over euro denominations.
 - **Error-code contract between backend and frontend.** The API returns RFC 9457 `ProblemDetails`
   carrying a language-neutral `errorCode` (`out_of_stock`, `insufficient_payment`, `empty_cart`,
-  `invalid_quantity`, `unknown_product`, `concurrency_conflict`, `not_found`). The SPA maps these codes
-  to localized messages itself. Adding a failure mode means adding the code in **both** places.
+  `invalid_quantity`, `unknown_product`, `concurrency_conflict`, `not_found`,
+  `missing_idempotency_key`). The SPA maps these codes to localized messages itself (falling back to a
+  generic message for codes with no user-actionable case). Adding a failure mode means adding the code
+  in **both** places.
 - **Concurrency + idempotency at checkout.** Stock decrements in one transaction with optimistic
   concurrency via the Postgres `xmin` column; `UnitOfWork` translates EF's `DbUpdateConcurrencyException`
   to `ConcurrencyConflictException` and a unique `IdempotencyKey` violation to
-  `DuplicateIdempotencyKeyException` (idempotent replay). The client posts a fresh `Idempotency-Key` per
-  checkout and auto-retries once on a transient `concurrency_conflict`.
+  `DuplicateIdempotencyKeyException` (idempotent replay). The key identifies the checkout *intent*: the
+  client generates one GUID per checkout (in `CheckoutDialog`) and reuses it across the conflict-retry
+  and any manual re-submit, so an ambiguous failure replays the original order instead of duplicating
+  it. The API **rejects** a missing/non-GUID key (`400 missing_idempotency_key`) rather than fabricating
+  one. The client auto-retries once on a transient `concurrency_conflict`.
 - **Client-side cart, server-authoritative totals.** `CartService` (frontend) holds quantities (quantity
   = taps on a product); displayed totals are advisory and the server **recomputes authoritatively** at
   checkout. Order lines snapshot product name + unit price for historical accuracy.

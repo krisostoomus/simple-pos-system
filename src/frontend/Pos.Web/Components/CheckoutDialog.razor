@@ -68,6 +68,11 @@
     private string? _error;
     private CheckoutResultModel? _result;
 
+    // One key per dialog instance = one checkout intent. Reused on the conflict-retry below and on any
+    // manual re-tap after an ambiguous failure, so the server replays the original order instead of
+    // creating a duplicate. A genuinely new sale opens a new dialog and gets a fresh key.
+    private readonly Guid _idempotencyKey = Guid.NewGuid();
+
     // The typed amount, parsed to cents (null while the field is empty or unparseable).
     private int? ParsedCents => ParseCents(_cashText);
 
@@ -103,7 +108,7 @@
             {
                 try
                 {
-                    _result = await Api.CheckoutAsync(body);
+                    _result = await Api.CheckoutAsync(body, _idempotencyKey);
                     // Empty the cart the moment payment succeeds — before the sale's own StockChanged
                     // broadcast arrives, so it can't misfire out-of-stock warnings on items we just sold.
                     Cart.Reset();

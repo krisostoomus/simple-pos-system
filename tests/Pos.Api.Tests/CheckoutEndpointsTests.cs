@@ -68,6 +68,23 @@ public sealed class CheckoutEndpointsTests(PosApiFactory factory)
     }
 
     [Fact]
+    public async Task Checkout_WithoutIdempotencyKey_Returns400MissingKey()
+    {
+        var client = factory.CreateClient();
+        // No Idempotency-Key header: the API must reject rather than fabricate one (which would
+        // silently disable dedupe and let an ambiguous-failure re-submit create a duplicate order).
+        var resp = await client.SendAsync(Checkout(new
+        {
+            lines = new[] { new { productId = 1, quantity = 1 } },
+            cashPaidCents = 100
+        }));
+
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
+        var problem = await resp.Content.ReadFromJsonAsync<ProblemView>();
+        Assert.Equal("missing_idempotency_key", problem!.ErrorCode);
+    }
+
+    [Fact]
     public async Task Checkout_SameIdempotencyKey_CreatesSingleOrder()
     {
         var client = factory.CreateClient();
