@@ -9,8 +9,9 @@ public class CatalogServiceTests
 {
     private readonly IProductRepository _products = Substitute.For<IProductRepository>();
     private readonly IUnitOfWork _uow = Substitute.For<IUnitOfWork>();
+    private readonly IStockNotifier _notifier = Substitute.For<IStockNotifier>();
 
-    private CatalogService CreateSut() => new(_products, _uow);
+    private CatalogService CreateSut() => new(_products, _uow, _notifier);
 
     [Fact]
     public async Task GetProducts_LocalizesNamesWithFallback()
@@ -69,5 +70,28 @@ public class CatalogServiceTests
 
         Assert.Equal(25, product.StockQuantity);
         await _uow.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SetStock_Valid_BroadcastsNewStockLevel()
+    {
+        var product = TestData.Product(1, stock: 0);
+        _products.GetByIdAsync(1).Returns(product);
+
+        await CreateSut().SetStockAsync(1, 25);
+
+        // Live update pushed to all connected sale screens via SignalR.
+        await _notifier.Received(1).NotifyStockChangedAsync(1, 25, Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SetStock_Invalid_DoesNotBroadcast()
+    {
+        _products.GetByIdAsync(1).Returns(TestData.Product(1));
+
+        await Assert.ThrowsAsync<InvalidQuantityException>(() => CreateSut().SetStockAsync(1, -1));
+
+        await _notifier.DidNotReceive().NotifyStockChangedAsync(
+            Arg.Any<int>(), Arg.Any<int>(), Arg.Any<CancellationToken>());
     }
 }

@@ -8,11 +8,13 @@ public sealed class CatalogService
 {
     private readonly IProductRepository _products;
     private readonly IUnitOfWork _uow;
+    private readonly IStockNotifier _notifier;
 
-    public CatalogService(IProductRepository products, IUnitOfWork uow)
+    public CatalogService(IProductRepository products, IUnitOfWork uow, IStockNotifier notifier)
     {
         _products = products;
         _uow = uow;
+        _notifier = notifier;
     }
 
     public async Task<IReadOnlyList<ProductDto>> GetProductsAsync(string? culture, CancellationToken ct = default)
@@ -38,6 +40,10 @@ public sealed class CatalogService
 
         product.SetStock(quantity);
         await _uow.SaveChangesAsync(ct);
+
+        // Broadcast the new level over SignalR so every connected device (sale screens on other
+        // tablets) reflects a staff stock change live — same notification path checkout uses.
+        await _notifier.NotifyStockChangedAsync(id, product.StockQuantity, ct);
     }
 
     private static ProductDto ToDto(Product p, string? neutralCulture)
