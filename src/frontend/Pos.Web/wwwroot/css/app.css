@@ -296,6 +296,15 @@ html, body {
     box-shadow: var(--shadow-rest), 0 0 0 3px rgba(5, 150, 105, .22);
 }
 
+/* MudButton actions (Reset / Checkout on the sale screen, Pay / Cancel / OK in the
+   checkout dialog) have no keyboard focus ring of their own — give them the same
+   focus-visible outline the rest of the app uses, so they're operable by keyboard. */
+.pos-checkout-bar .mud-button-root:focus-visible,
+.mud-dialog .mud-button-root:focus-visible {
+    outline: 2px solid var(--forest);
+    outline-offset: 2px;
+}
+
 /* In-cart state — green edge + ring */
 .pos-card--active {
     border-color: var(--forest);
