@@ -28,9 +28,9 @@ public sealed class PosSteps(ScenarioContext context)
 
     [Then(@"the running total shows ""(.*)""")]
     public async Task ThenTotalShows(string amount)
-        // Partial text locator: tolerant of currency-symbol encoding and the label/amount being in
-        // separate elements (the colon is optional since the UI renders label and figure as siblings).
-        => await Page.Locator($"text=/Total.*{amount}/").WaitForAsync(new() { Timeout = 15_000 });
+        // Target the dedicated total figure directly. HasText is a case-insensitive substring match, so
+        // this is robust to the label's CSS uppercasing and the trailing currency symbol ("1.30 €").
+        => await Page.Locator(".pos-total-amount", new() { HasText = amount }).WaitForAsync(new() { Timeout = 15_000 });
 
     [When(@"I checkout with cash ""(.*)""")]
     public async Task WhenCheckout(string cash)
@@ -44,7 +44,8 @@ public sealed class PosSteps(ScenarioContext context)
 
     [Then(@"the change shown is ""(.*)""")]
     public async Task ThenChangeShown(string amount)
-        => await Page.Locator($"text=/Change.*{amount}/").WaitForAsync(new() { Timeout = 15_000 });
+        // Target the change hero figure directly (same rationale as the total: label is CSS-uppercased).
+        => await Page.Locator(".pos-change-hero-amount", new() { HasText = amount }).WaitForAsync(new() { Timeout = 15_000 });
 
     [Then(@"the ""(.*)"" product is grayed out")]
     public async Task ThenGrayedOut(string name)
