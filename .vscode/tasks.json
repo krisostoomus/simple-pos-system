@@ -1,0 +1,32 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Bring up only Postgres (uses docker-compose.override.yml to publish 5432).
+      "label": "db-up",
+      "type": "shell",
+      "command": "docker compose up -d db --wait",
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent", "panel": "shared" }
+    },
+    {
+      "label": "build-api",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/src/backend/Pos.Api/Pos.Api.csproj",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      // What the API launch config waits on: DB up, then a fresh build.
+      "label": "prep-api",
+      "dependsOrder": "sequence",
+      "dependsOn": ["db-up", "build-api"],
+      "problemMatcher": []
+    }
+  ]
+}

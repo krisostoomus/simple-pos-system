@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Per-developer local Compose overrides (e.g. publishing the DB port to the host)
+docker-compose.override.yml

@@ -1,6 +1,5 @@
 using System.Text;
 using Asp.Versioning;
-using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -91,12 +90,16 @@ var v1 = app.MapGroup("/api/v{version:apiVersion}")
     .WithApiVersionSet(versionSet)
     .HasApiVersion(new ApiVersion(1, 0));
 
+//map API endpoints
 v1.MapAuthEndpoints();
 v1.MapProductEndpoints();
 v1.MapOrderEndpoints();
 v1.MapReportEndpoints();
 
+// SignalR hub for real-time stock updates
 app.MapHub<StockHub>("/hubs/stock");
+
+//basic health endpoint for monitoring
 app.MapHealthChecks("/health");
 
 app.MapGet("/", () => Results.Ok(new
