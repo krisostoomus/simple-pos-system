@@ -49,13 +49,12 @@ The admin page (`/admin`) and the funds-raised report require a staff token:
 - **Idempotent checkout** — an `Idempotency-Key` makes double-submits (flaky networks) safe, including the concurrent-duplicate case.
 - **Localization (English / Estonian)** — UI chrome from `.resx`; product names from the API via `Accept-Language` with fallback to the canonical name.
 - **Staff-only admin** — JWT-protected: set second-hand stock on the day, view the funds-raised summary.
-- **Config-file seeding (bonus)** — catalog, prices, quantities and translations seeded from `seed.json` on startup.
+- **Config-file seeding ** — catalog, prices, quantities and translations seeded from `seed.json` on startup.
 - **Documented REST API** — versioned (`/api/v1`), OpenAPI + Swagger UI, RFC 9457 `ProblemDetails` with machine-readable error codes.
 
 ## Architecture
 
-Separated frontend and backend over HTTP, three containers (web · api · db). The API uses
-lightweight Clean Architecture (Domain → Application → Infrastructure → Api).
+Separated frontend and backend over HTTP, three containers (web · api · db). The API uses Architecture (Domain → Application → Infrastructure → Api).
 
 See **[docs/architecture/README.md](docs/architecture/README.md)** for the C4 diagrams, the checkout
 sequence, and the ER model.
@@ -99,11 +98,10 @@ E2E scenarios (3: purchase + change, out-of-stock graying, language switch).
 
 Full identity over the existing JWT seam (per-seller accounts, OIDC/SSO, refresh tokens); a real
 payment provider; finite cash-drawer tracking with denomination-aware change; pessimistic locking or
-stock reservations under heavy contention; a CI/CD pipeline; multi-event support.
+stock reservations under heavy contention; a CI/CD pipeline.
 
 ## Documentation
 
 - [Architecture & diagrams](docs/architecture/README.md)
 - [Deployment guide](DEPLOY.md)
 - [Backend README](src/backend/README.md) · [Frontend README](src/frontend/README.md)
-- [Design spec](docs/superpowers/specs/2026-06-13-pos-system-design.md) and [implementation plans](docs/superpowers/plans/)
