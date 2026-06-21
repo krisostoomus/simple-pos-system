@@ -50,4 +50,19 @@ public class ProductCardTests : BunitContext, IAsyncLifetime
         cut.Find(".pos-card").Click();
         Assert.Equal(1, raised);
     }
+
+    [Fact]
+    public void Card_IsANativeButton_ForKeyboardActivation()
+    {
+        // A real <button> is focusable and activates on Enter/Space natively (no custom key handling),
+        // so the card is reachable and addable with the keyboard alone — not only by mouse/touch.
+        var product = new ProductModel(1, "Brownie", "Edible", 65, 5, "brownie");
+        var cut = Render<ProductCard>(p => p
+            .Add(c => c.Product, product)
+            .Add(c => c.OnAddToCart, _ => { }));
+
+        var card = cut.Find(".pos-card");
+        Assert.Equal("BUTTON", card.TagName);
+        Assert.Equal("button", card.GetAttribute("type"));
+    }
 }

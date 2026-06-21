@@ -1,6 +1,6 @@
 @inject IStringLocalizer<UiStrings> L
 
-<div class="@CardClass" style="--i:@Index" @onclick="OnAdd" role="button" tabindex="0" aria-disabled="@(!CanAdd)">
+<button type="button" class="@CardClass" style="--i:@Index" @onclick="OnAdd" aria-disabled="@(!CanAdd)">
     <div class="pos-thumb">
         <img class="pos-img" src="@ImageUrl" alt="@Product.Name" draggable="false" loading="lazy"
              onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
@@ -24,7 +24,7 @@
             }
         </div>
     </div>
-</div>
+</button>
 
 @code {
     [Parameter, EditorRequired] public ProductModel Product { get; set; } = default!;

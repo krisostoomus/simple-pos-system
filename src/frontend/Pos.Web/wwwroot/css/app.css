@@ -249,6 +249,15 @@ html, body {
     position: relative;
     display: flex;
     flex-direction: column;
+    /* Native <button> so a single tap OR keyboard (Tab + Enter/Space) adds to cart; reset UA chrome. */
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    appearance: none;
+    -webkit-appearance: none;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 18px;
@@ -300,6 +309,9 @@ html, body {
 /* Thumbnail — full-bleed product photo */
 .pos-thumb {
     position: relative;
+    /* Explicit width: the card is now a flex <button> whose children don't cross-axis-stretch the way
+       a <div>'s did, so the absolutely-positioned .pos-img needs the thumb to define a real width. */
+    width: 100%;
     height: 150px;
     display: flex;
     align-items: center;
