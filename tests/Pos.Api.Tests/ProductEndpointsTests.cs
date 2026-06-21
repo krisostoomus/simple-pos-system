@@ -10,10 +10,10 @@ public sealed class ProductEndpointsTests(PosApiFactory factory)
     public async Task GetProducts_ReturnsSeededCatalog()
     {
         var client = factory.CreateClient();
-        var products = await client.GetFromJsonAsync<List<ProductView>>("/api/v1/products");
-        Assert.NotNull(products);
-        Assert.Equal(9, products!.Count); // 5 edible + 4 second-hand
-        Assert.Contains(products, p => p.Name == "Brownie" && p.PriceCents == 65);
+        var payload = await client.GetFromJsonAsync<ProductListView>("/api/v1/products");
+        Assert.NotNull(payload);
+        Assert.Equal(9, payload!.Products.Count); // 5 edible + 4 second-hand
+        Assert.Contains(payload.Products, p => p.Name == "Brownie" && p.PriceCents == 65);
     }
 
     [Fact]
@@ -23,8 +23,8 @@ public sealed class ProductEndpointsTests(PosApiFactory factory)
         var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/products");
         req.Headers.Add("Accept-Language", "et");
         var resp = await client.SendAsync(req);
-        var products = await resp.Content.ReadFromJsonAsync<List<ProductView>>();
-        Assert.Contains(products!, p => p.Name == "Brauni"); // Brownie -> Brauni
+        var payload = await resp.Content.ReadFromJsonAsync<ProductListView>();
+        Assert.Contains(payload!.Products, p => p.Name == "Brauni"); // Brownie -> Brauni
     }
 
     [Fact]
@@ -42,9 +42,10 @@ public sealed class ProductEndpointsTests(PosApiFactory factory)
         var resp = await client.PutAsJsonAsync("/api/v1/products/6/stock", new { quantity = 12 });
         Assert.Equal(HttpStatusCode.NoContent, resp.StatusCode);
 
-        var products = await client.GetFromJsonAsync<List<ProductView>>("/api/v1/products");
-        Assert.Equal(12, products!.Single(p => p.Id == 6).StockQuantity);
+        var payload = await client.GetFromJsonAsync<ProductListView>("/api/v1/products");
+        Assert.Equal(12, payload!.Products.Single(p => p.Id == 6).StockQuantity);
     }
 
     public sealed record ProductView(int Id, string Name, string Category, int PriceCents, int StockQuantity, string ImageKey, bool IsOutOfStock);
+    public sealed record ProductListView(IReadOnlyList<ProductView> Products);
 }

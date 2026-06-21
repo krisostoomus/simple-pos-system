@@ -18,7 +18,8 @@ public sealed class PosApiClient(HttpClient http, AuthState auth, CultureService
         req.Headers.AcceptLanguage.Add(new StringWithQualityHeaderValue(culture.Current));
         using var resp = await http.SendAsync(req, ct);
         await EnsureSuccess(resp);
-        return (await resp.Content.ReadFromJsonAsync<List<ProductModel>>(Json, ct))!;
+        var payload = await resp.Content.ReadFromJsonAsync<ProductListModel>(Json, ct);
+        return payload!.Products;
     }
 
     // The idempotency key is supplied by the caller (not minted here) so it stays stable across retries

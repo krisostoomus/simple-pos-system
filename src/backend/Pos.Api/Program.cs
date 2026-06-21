@@ -53,6 +53,13 @@ builder.Services.AddApiVersioning(o =>
     o.DefaultApiVersion = new ApiVersion(1, 0);
     o.AssumeDefaultVersionWhenUnspecified = true;
     o.ReportApiVersions = true;
+})
+.AddApiExplorer(o =>
+{
+    // Format group names as "v1" (matches the OpenAPI document name) and substitute the
+    // version into route templates so the OpenAPI doc emits /api/v1/... instead of /api/v{version}/...
+    o.GroupNameFormat = "'v'VVV";
+    o.SubstituteApiVersionInUrl = true;
 });
 
 // OpenAPI + problem details + cors + signalr + health

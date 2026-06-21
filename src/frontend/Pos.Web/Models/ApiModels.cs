@@ -15,6 +15,10 @@ public sealed record ProductModel(
     public bool IsOutOfStock => StockQuantity <= 0;
 }
 
+/// <summary>The catalog response: items live under a <c>products</c> property rather than a bare
+/// top-level array, matching the API's collection-response convention.</summary>
+public sealed record ProductListModel(IReadOnlyList<ProductModel> Products);
+
 public sealed record ChangePieceModel(int DenominationCents, int Count);
 
 public sealed record OrderLineModel(
