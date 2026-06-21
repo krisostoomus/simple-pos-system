@@ -100,6 +100,11 @@ Full identity over the existing JWT seam (per-seller accounts, OIDC/SSO, refresh
 payment provider; finite cash-drawer tracking with denomination-aware change; pessimistic locking or
 stock reservations under heavy contention; a CI/CD pipeline.
 
+## Image credits
+
+Product photos are sourced from [Pexels](https://www.pexels.com/) and [Unsplash](https://unsplash.com/).
+Both are royalty-free — attribution is not required by their licenses, but is given here as a courtesy.
+
 ## Documentation
 
 - [Architecture & diagrams](docs/architecture/README.md)
